@@ -65,7 +65,6 @@ gameSocket.on("UPDATE", data => {
   } else if (data.turn_information[0].current_player == username) {
     turnState = "play";
     currentPlayer = data.turn_information[0].current_player;
-    console.log(currentPlayer);
   } else {
     turnState = "nudge";
     currentPlayer = data.turn_information[0].current_player;
@@ -165,10 +164,18 @@ gameSocket.on("GAME OVER", data => {
   $("#game_over_window").modal();
 });
 
-// TODO: Put this in some utility function
+// TODO: Put these in some utility location
 const getSuit = (card) => {
 	return Math.floor((card - 1) / 8);
 };
+
+const getCardValue = (card) => {
+	let card_idx = (card - 1) % 8;
+	if (card_idx != 0) {
+	   return card_idx + 5;
+	}
+	return 0;
+}
 
 function updateGameBoard() {
   const board = document.getElementsByClassName("game-box")[0];
@@ -201,7 +208,7 @@ function updateGameBoard() {
   }
   if (topPlayer.card_in_play != null) {
     let suit = -getSuit(topPlayer.card_in_play) * 100;
-    let face = -((topPlayer.card_in_play - 1) % 8) * 69;
+    let face = -(getCardValue(topPlayer.card_in_play)) * 69;
     gameHtml +=
       '<div class = "top-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -266,7 +273,7 @@ function updateGameBoard() {
     displacement = 170 + (13 - playersCards.length) * 10;
     for (let i = 0; i < playersCards.length; i++) {
       let suit = -getSuit(playersCards[i].card_id) * 100;
-      let face = -((playersCards[i].card_id - 1) % 8) * 69;
+      let face = -(getCardValue(playersCards[i].card_id)) * 69;
       gameHtml +=
         '<div class= "bottom-player" style="left: ' +
         displacement +
@@ -288,7 +295,7 @@ function updateGameBoard() {
 
   if (bottomPlayer.card_in_play != null) {
     let suit = -getSuit(bottomPlayer.card_in_play) * 100;
-    let face = -((bottomPlayer.card_in_play - 1) % 8) * 69;
+    let face = -(getCardValue(bottomPlayer.card_in_play)) * 69;
     gameHtml +=
       '<div class = "bottom-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -337,7 +344,7 @@ function updateBoardFourPlayers(gameHtml) {
   }
   if (leftPlayer.card_in_play != null) {
     let suit = -getSuit(leftPlayer.card_in_play) * 100;
-    let face = -((leftPlayer.card_in_play - 1) % 8) * 69;
+    let face = -(getCardValue(leftPlayer.card_in_play)) * 69;
     gameHtml +=
       '<div class = "left-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -375,7 +382,7 @@ function updateBoardFourPlayers(gameHtml) {
   }
   if (rightPlayer.card_in_play != null) {
     let suit = -getSuit(rightPlayer.card_in_play) * 100;
-    let face = -((rightPlayer.card_in_play - 1) % 8) * 69;
+    let face = -(getCardValue(rightPlayer.card_in_play)) * 69;
     gameHtml +=
       '<div class = "right-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -401,7 +408,6 @@ function resetCard(id) {
 
 function selectSingleCard(id) {
   const alertBox = document.getElementsByClassName("alert-box")[0];
-
   if (selectedSingle != "0") {
     if (selectedSingleCard == id) {
       resetCard(selectedSingleCard);
@@ -417,9 +423,7 @@ function selectSingleCard(id) {
     selectCard(id);
     selectedSingle = true;
   }
-
   let btn = document.getElementById("single-button");
-  console.log(gameOver + " X " + selectedSingle);
   if (selectedSingle && !gameOver) {
     buttonDisableLogic(); //btn.disabled = false;
   } else {
@@ -442,18 +446,6 @@ function buttonDisableLogic() {
     handSizeTotal +=
       parseInt(leftPlayer.card_count) + parseInt(rightPlayer.card_count);
   }
-  if (handSizeTotal == 52) {
-    //Must pick 2 of clubs
-    if (selectedCard == 2) {
-      alertBox.innerHTML = "";
-      btn.disabled = false;
-    } else {
-      alertBox.innerHTML =
-        "<p> The two of clubs must be the first card played each round.</p>";
-      btn.disabled = true;
-    }
-    return;
-  }
 
   let leadCard = 0;
 
@@ -473,94 +465,24 @@ function buttonDisableLogic() {
     }
   }
 
-  //Case: you're the leading suit
-  if (leadCard == 0) {
-    let brokenHearts =
-      parseInt(bottomPlayer.current_round_score) +
-      parseInt(topPlayer.current_round_score);
-    if (numPlayers == 4) {
-      brokenHearts +=
-        parseInt(leftPlayer.current_round_score) +
-        parseInt(rightPlayer.current_round_score);
-    }
-
-    let hasNonHeart = false;
-    for (let i = 0; i < playersCards.length; i++) {
-      if (getSuit(playersCards[i].card_id) == 2) {
-        hasNonHeart = true;
-      }
-    }
-
-    if (brokenHearts == 0 && selectedSuit == 2 && hasNonHeart) {
-      alertBox.innerHTML =
-        "<p>Hearts haven't been broken yet, you can't play hearts as the lead suit.</p>";
-      btn.disabled = true;
-    } else {
-      alertBox.innerHTML = "";
-      btn.disabled = false;
-    }
-    return;
-  }
-
-  let leadSuit = getSuit(leadCard);
-
-  if (leadSuit != selectedSuit) {
+  if (leadCard != 0 && getSuit(leadCard) != selectedSuit) {
+    let leadSuit = getSuit(leadCard);
     let playableCard = false;
     for (let i = 0; i < playersCards.length; i++) {
-      if (leadSuit == getSuit(playersCards[i].card_id)) {
-        playableCard = true;
-      }
+      	if (leadSuit == getSuit(playersCards[i].card_id)) {
+        	playableCard = true;
+      	}
     }
     if (playableCard) {
-      alertBox.innerHTML = "<p>Your card must match the leading suit.</p>";
-      btn.disabled = true;
+      	alertBox.innerHTML = "<p>Your card must match the leading suit.</p>";
+      	btn.disabled = true;
     } else {
-      alertBox.innerHTML = "";
-      btn.disabled = false;
+      	alertBox.innerHTML = "";
+      	btn.disabled = false;
     }
   } else {
-    alertBox.innerHTML = "";
+  	alertBox.innerHTML = "";
     btn.disabled = false;
-  }
-}
-
-function selectMultipleCard(id) {
-  if (selectedFirst && selectedMultiple[0] == id) {
-    resetCard(id);
-    selectedMultiple[0] = "0";
-    selectedFirst = false;
-  } else if (
-    !selectedFirst &&
-    id != selectedMultiple[1] &&
-    id != selectedMultiple[2]
-  ) {
-    selectedMultiple[0] = id;
-    selectCard(id);
-    selectedFirst = true;
-  } else if (selectedSecond && selectedMultiple[1] == id) {
-    resetCard(id);
-    selectedMultiple[1] = "0";
-    selectedSecond = false;
-  } else if (!selectedSecond && id != selectedMultiple[2]) {
-    selectedMultiple[1] = id;
-    selectCard(id);
-    selectedSecond = true;
-  } else if (selectedThird && selectedMultiple[2] == id) {
-    resetCard(id);
-    selectedMultiple[2] = "0";
-    selectedThird = false;
-  } else if (!selectedThird) {
-    selectedMultiple[2] = id;
-    selectCard(id);
-    selectedThird = true;
-  }
-
-  let btn = document.getElementById("multiple-button");
-
-  if (selectedFirst && selectedSecond && selectedThird && !gameOver) {
-    btn.disabled = false;
-  } else {
-    btn.disabled = true;
   }
 }
 

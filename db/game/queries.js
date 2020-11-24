@@ -42,6 +42,10 @@ const INIT_CARDS_QUERY =
   "VALUES ($1, counter); " +
   "END LOOP; " +
   "END; $$ ";
+  
+const GET_CARD_VALUE_QUERY = 
+  "SELECT card_value from cards " +
+  "WHERE card_id = $1";
 
 const GET_USERS_QUERY =
   "SELECT username, turn_sequence FROM users, game_players " +
@@ -193,6 +197,7 @@ module.exports = {
   VERIFY_IN_GAME_QUERY,
   MAX_PLAYERS_QUERY,
   INIT_CARDS_QUERY,
+  GET_CARD_VALUE_QUERY,
   GET_USERS_QUERY,
   GET_CARDS_QUERY,
   SET_CARD_OWNER_QUERY,

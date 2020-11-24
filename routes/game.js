@@ -132,12 +132,8 @@ gameSocket.on("connection", socket => {
               if (results.length === 0) return;
               Game.getLeadingSuit(game_id).then(results => {
                 let lead_suit = results[0].leading_suit;
-
                 if (lead_suit == null) {
-                  Game.setLeadingSuit(
-                    game_id,
-                    Math.floor((card_played - 1) / 13)
-                  );
+                  Game.setLeadingSuit(game_id, Game.getSuit(card_played));
                 }
               });
 
@@ -252,7 +248,6 @@ const checkGameReady = game_id => {
 
           return Game.getPlayerCount(game_id).then(player_count => {
             // check if game room is full to start game
-            console.log(player_count + " " + max_players);
             return Promise.resolve(player_count == max_players);
           });
         })
