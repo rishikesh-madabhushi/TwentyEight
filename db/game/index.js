@@ -343,7 +343,7 @@ const checkPlayerTakingCards = game_id => {
 
       for (let index = 0; index < cardsInPlay.length; index++) {
         let current_card = cardsInPlay[index].card_id;
-        let current_suite = Math.floor((current_card - 1) / 13);
+        let current_suit = Math.floor(getSuit(current_card));
 
         if ((current_card - 1) % 13 == 0) {
           value = 14;
@@ -351,13 +351,13 @@ const checkPlayerTakingCards = game_id => {
           value = ((current_card - 1) % 13) + 1;
         }
 
-        if (current_suite == 3 && value == 12) {
+        if (current_suit == 3 && value == 12) {
           points_on_table += 13;
-        } else if (current_suite == 2) {
+        } else if (current_suit == 2) {
           points_on_table += 1;
         }
 
-        if (current_suite == lead_suit) {
+        if (current_suit == lead_suit) {
           if (value > max_value) {
             max_value = value;
             player_taking_hand = cardsInPlay[index].user_id;

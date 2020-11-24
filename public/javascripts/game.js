@@ -328,6 +328,10 @@ function updateGameBoard() {
   }
 }
 
+function getSuit(card) {
+	return (card - 1) / 8;
+}
+
 function updateBoardFourPlayers(gameHtml) {
   const board = document.getElementsByClassName("game-box")[0];
   let z = 30;
@@ -358,8 +362,8 @@ function updateBoardFourPlayers(gameHtml) {
     displacement += 20;
   }
   if (leftPlayer.card_in_play != null) {
-    let suit = -Math.floor((leftPlayer.card_in_play - 1) / 13) * 100;
-    let face = -((leftPlayer.card_in_play - 1) % 13) * 69;
+    let suit = -Math.floor(getSuit(leftPlayer.card_in_play)) * 100;
+    let face = -(getSuit(leftPlayer.card_in_play)) * 69;
     gameHtml +=
       '<div class = "left-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -396,8 +400,8 @@ function updateBoardFourPlayers(gameHtml) {
     displacement -= 20;
   }
   if (rightPlayer.card_in_play != null) {
-    let suit = -Math.floor((rightPlayer.card_in_play - 1) / 13) * 100;
-    let face = -((rightPlayer.card_in_play - 1) % 13) * 69;
+    let suit = -Math.floor(getSuit(rightPlayer.card_in_play)) * 100;
+    let face = -(getSuit(rightPlayer.card_in_play)) * 69;
     gameHtml +=
       '<div class = "right-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -454,7 +458,7 @@ function buttonDisableLogic() {
   const alertBox = document.getElementsByClassName("alert-box")[0];
 
   let selectedCard = parseInt(selectedSingleCard);
-  let selectedSuit = Math.floor((selectedCard - 1) / 13);
+  let selectedSuit = Math.floor(getSuit(selectedCard));
 
   let btn = document.getElementById("single-button");
 
@@ -508,7 +512,7 @@ function buttonDisableLogic() {
 
     let hasNonHeart = false;
     for (let i = 0; i < playersCards.length; i++) {
-      if (Math.floor((playersCards[i].card_id - 1) / 13) == 2) {
+      if (Math.floor(getSuit(playersCards[i].card_id)) == 2) {
         hasNonHeart = true;
       }
     }
@@ -524,12 +528,12 @@ function buttonDisableLogic() {
     return;
   }
 
-  let leadSuit = Math.floor((leadCard - 1) / 13);
+  let leadSuit = Math.floor(getSuit(leadCard));
 
   if (leadSuit != selectedSuit) {
     let playableCard = false;
     for (let i = 0; i < playersCards.length; i++) {
-      if (leadSuit == Math.floor((playersCards[i].card_id - 1) / 13)) {
+      if (leadSuit == Math.floor(getSuit(playersCards[i].card_id))) {
         playableCard = true;
       }
     }

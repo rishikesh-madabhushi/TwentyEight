@@ -37,7 +37,7 @@ const MAX_PLAYERS_QUERY = "SELECT max_players FROM games WHERE game_id = $1";
 const INIT_CARDS_QUERY =
   "DO $$ " +
   "BEGIN " +
-  "FOR counter IN 1..52 LOOP " +
+  "FOR counter IN 1..32 LOOP " +
   "INSERT INTO user_game_cards (game_id, card_id) " +
   "VALUES ($1, counter); " +
   "END LOOP; " +
