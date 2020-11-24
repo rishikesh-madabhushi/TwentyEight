@@ -14,7 +14,6 @@ let selectedSecond = false;
 let selectedThird = false;
 let selectedSingleCard = "0";
 let selectedMultiple = ["0", "0", "0"];
-let validPass = false;
 let gameOver = false;
 
 gameSocket.on("LOAD PLAYERS", data => {
@@ -52,8 +51,6 @@ gameSocket.on("UPDATE", data => {
     clearTimeout(timer);
   } catch (e) {}
 
-  validPass = false;
-
   topPlayer = data.shared_player_information[topPlayerOrder];
   bottomPlayer = data.shared_player_information[bottomPlayerOrder];
 
@@ -64,17 +61,11 @@ gameSocket.on("UPDATE", data => {
 
   if (observer) {
     turnState = "observer";
-    if (data.turn_information[0] == null) {
-      currentPlayer = null;
-    } else {
-      currentPlayer = data.turn_information[0].current_player;
-    }
-  } else if (data.turn_information[0] == null) {
-    turnState = "pass";
-    currentPlayer = null;
+    currentPlayer = data.turn_information[0].current_player;
   } else if (data.turn_information[0].current_player == username) {
     turnState = "play";
     currentPlayer = data.turn_information[0].current_player;
+    console.log(currentPlayer);
   } else {
     turnState = "nudge";
     currentPlayer = data.turn_information[0].current_player;
@@ -92,12 +83,6 @@ gameSocket.on("UPDATE", data => {
   } else {
     gameSocket.emit("GET PLAYER HAND", { user_id: user_id, game_id: game_id });
   }
-});
-
-gameSocket.on("VALID PASS", data => {
-  let { user_id, game_id } = data;
-  validPass = true;
-  gameSocket.emit("GET PLAYER HAND", { user_id: user_id, game_id: game_id });
 });
 
 gameSocket.on("SEND PLAYER HAND", data => {
@@ -180,6 +165,11 @@ gameSocket.on("GAME OVER", data => {
   $("#game_over_window").modal();
 });
 
+// TODO: Put this in some utility function
+const getSuit = (card) => {
+	return Math.floor((card - 1) / 8);
+};
+
 function updateGameBoard() {
   const board = document.getElementsByClassName("game-box")[0];
   let gameHtml = "";
@@ -210,8 +200,8 @@ function updateGameBoard() {
     displacement -= 20;
   }
   if (topPlayer.card_in_play != null) {
-    let suit = -Math.floor((topPlayer.card_in_play - 1) / 13) * 100;
-    let face = -((topPlayer.card_in_play - 1) % 13) * 69;
+    let suit = -getSuit(topPlayer.card_in_play) * 100;
+    let face = -((topPlayer.card_in_play - 1) % 8) * 69;
     gameHtml +=
       '<div class = "top-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -223,24 +213,12 @@ function updateGameBoard() {
   }
 
   let buttonString = "";
-  if (validPass) {
-    buttonString = "";
-    gameHtml +=
-      '<button class="game-button btn btn-primary" id="nudge-button" onclick="nudgeButton()">Nudge</button>';
-    gameHtml +=
-      '<div class = "alert-box"><p>Waiting for other plays to select their cards to pass...</p></div>';
-  } else if (turnState == "play") {
+  if (turnState == "play") {
     buttonString = 'onclick="selectSingleCard(this.id)"';
     gameHtml +=
       '<button class="game-button btn btn-primary" id="single-button" onclick="playButton()" disabled>Play</button>';
     gameHtml +=
       '<div class = "alert-box"><p>Your turn to play a card.</p></div>';
-  } else if (turnState == "pass") {
-    buttonString = 'onclick="selectMultipleCard(this.id)"';
-    gameHtml +=
-      '<button class="game-button btn btn-primary " id="multiple-button" onclick="passButton()" disabled>Pass cards</button>';
-    gameHtml +=
-      '<div class = "alert-box"><p>Select three cards to pass.</p></div>';
   } else if (!observer) {
     buttonString = "";
     gameHtml +=
@@ -287,8 +265,8 @@ function updateGameBoard() {
   } else {
     displacement = 170 + (13 - playersCards.length) * 10;
     for (let i = 0; i < playersCards.length; i++) {
-      let suit = -Math.floor((playersCards[i].card_id - 1) / 13) * 100;
-      let face = -((playersCards[i].card_id - 1) % 13) * 69;
+      let suit = -getSuit(playersCards[i].card_id) * 100;
+      let face = -((playersCards[i].card_id - 1) % 8) * 69;
       gameHtml +=
         '<div class= "bottom-player" style="left: ' +
         displacement +
@@ -309,8 +287,8 @@ function updateGameBoard() {
   }
 
   if (bottomPlayer.card_in_play != null) {
-    let suit = -Math.floor((bottomPlayer.card_in_play - 1) / 13) * 100;
-    let face = -((bottomPlayer.card_in_play - 1) % 13) * 69;
+    let suit = -getSuit(bottomPlayer.card_in_play) * 100;
+    let face = -((bottomPlayer.card_in_play - 1) % 8) * 69;
     gameHtml +=
       '<div class = "bottom-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -326,10 +304,6 @@ function updateGameBoard() {
   } else {
     board.innerHTML = gameHtml;
   }
-}
-
-function getSuit(card) {
-	return (card - 1) / 8;
 }
 
 function updateBoardFourPlayers(gameHtml) {
@@ -362,8 +336,8 @@ function updateBoardFourPlayers(gameHtml) {
     displacement += 20;
   }
   if (leftPlayer.card_in_play != null) {
-    let suit = -Math.floor(getSuit(leftPlayer.card_in_play)) * 100;
-    let face = -(getSuit(leftPlayer.card_in_play)) * 69;
+    let suit = -getSuit(leftPlayer.card_in_play) * 100;
+    let face = -((leftPlayer.card_in_play - 1) % 8) * 69;
     gameHtml +=
       '<div class = "left-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -400,8 +374,8 @@ function updateBoardFourPlayers(gameHtml) {
     displacement -= 20;
   }
   if (rightPlayer.card_in_play != null) {
-    let suit = -Math.floor(getSuit(rightPlayer.card_in_play)) * 100;
-    let face = -(getSuit(rightPlayer.card_in_play)) * 69;
+    let suit = -getSuit(rightPlayer.card_in_play) * 100;
+    let face = -((rightPlayer.card_in_play - 1) % 8) * 69;
     gameHtml +=
       '<div class = "right-player-to-mid card " style="background-position-y: ' +
       suit +
@@ -445,7 +419,7 @@ function selectSingleCard(id) {
   }
 
   let btn = document.getElementById("single-button");
-
+  console.log(gameOver + " X " + selectedSingle);
   if (selectedSingle && !gameOver) {
     buttonDisableLogic(); //btn.disabled = false;
   } else {
@@ -458,7 +432,7 @@ function buttonDisableLogic() {
   const alertBox = document.getElementsByClassName("alert-box")[0];
 
   let selectedCard = parseInt(selectedSingleCard);
-  let selectedSuit = Math.floor(getSuit(selectedCard));
+  let selectedSuit = getSuit(selectedCard);
 
   let btn = document.getElementById("single-button");
 
@@ -512,7 +486,7 @@ function buttonDisableLogic() {
 
     let hasNonHeart = false;
     for (let i = 0; i < playersCards.length; i++) {
-      if (Math.floor(getSuit(playersCards[i].card_id)) == 2) {
+      if (getSuit(playersCards[i].card_id) == 2) {
         hasNonHeart = true;
       }
     }
@@ -528,12 +502,12 @@ function buttonDisableLogic() {
     return;
   }
 
-  let leadSuit = Math.floor(getSuit(leadCard));
+  let leadSuit = getSuit(leadCard);
 
   if (leadSuit != selectedSuit) {
     let playableCard = false;
     for (let i = 0; i < playersCards.length; i++) {
-      if (leadSuit == Math.floor(getSuit(playersCards[i].card_id))) {
+      if (leadSuit == getSuit(playersCards[i].card_id)) {
         playableCard = true;
       }
     }
@@ -588,29 +562,6 @@ function selectMultipleCard(id) {
   } else {
     btn.disabled = true;
   }
-}
-
-function passButton() {
-  // send three cards to server
-  gameSocket.emit("PASS CARDS", {
-    user_id: user_id,
-    game_id: game_id,
-    passed_cards: [
-      selectedMultiple[0],
-      selectedMultiple[1],
-      selectedMultiple[2]
-    ]
-  });
-
-  resetCard(selectedMultiple[0]);
-  resetCard(selectedMultiple[1]);
-  resetCard(selectedMultiple[2]);
-  selectedFirst = false;
-  selectedSecond = false;
-  selectedThird = false;
-  selectedMultiple = ["0", "0", "0"];
-  let btn = document.getElementById("multiple-button");
-  btn.disabled = true;
 }
 
 function playButton() {

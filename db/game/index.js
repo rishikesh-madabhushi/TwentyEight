@@ -462,6 +462,10 @@ const isGamePlayer = (user_id, game_id) => {
   return db.query(VERIFY_PLAYER_QUERY, [user_id, game_id]);
 };
 
+const getSuit = (card) => {
+	return Math.floor((card - 1) / 8);
+};
+
 const resetRoundScore = game_id => {
   return db.none(RESET_POINTS_QUERY, [game_id]);
 };
@@ -512,5 +516,6 @@ module.exports = {
   getHandSize,
   getMaximumScore,
   checkGameExists,
-  isGamePlayer
+  isGamePlayer,
+  getSuit
 };

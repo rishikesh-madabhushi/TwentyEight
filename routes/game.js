@@ -10,7 +10,7 @@ let game_id;
 let nudge_timer;
 
 router.get("/", isAuthenticated, (req, res, next) => {
-  res.render("game", { title: "Hearts Game" });
+  res.render("game", { title: "TwentyEight Game" });
 });
 
 router.get("/:game_id", isAuthenticated, (req, res) => {
@@ -33,22 +33,20 @@ gameSocket.on("connection", socket => {
   if (game_id == null) {
     return;
   }
-
   socket.join(game_id);
 
   checkGameReady(game_id).then(results => {
     if (results === true) {
-      return prepareCards(game_id).then(() => {
-        return Game.getUserNamesFromGame(game_id).then(username => {
-          gameSocket
-            .to(game_id)
+     return prepareCards(game_id).then(() => {
+      return Game.getUserNamesFromGame(game_id).then(username => {
+        gameSocket.to(game_id)
             .emit("LOAD PLAYERS", { game_players: username });
 
-          setTimeout(() => {
-            return update(game_id);
-          }, 500);
-        });
+        setTimeout(() => {
+        	return startGame(game_id);
+        }, 500);
       });
+     });
     } else {
       return Game.getUserNamesFromGame(game_id).then(username => {
         gameSocket.to(game_id).emit("LOAD PLAYERS", { game_players: username });
@@ -113,59 +111,6 @@ gameSocket.on("connection", socket => {
         }
       }
     });
-  });
-
-  socket.on("PASS CARDS", data => {
-    const { user_id, game_id, passed_cards } = data;
-
-    let card1 = parseInt(passed_cards[0]),
-      card2 = parseInt(passed_cards[1]),
-      card3 = parseInt(passed_cards[2]);
-
-    if (nudge_timer != undefined) {
-      gameSocket.emit("CANCEL NUDGE", nudge_timer);
-    }
-
-    Game.verifyUserHasCards(user_id, game_id, [card1, card2, card3]).then(
-      hasCards => {
-        if (hasCards === true) {
-          Game.verifyUserPassedCards(user_id, game_id).then(hasPassed => {
-            if (hasPassed === false) {
-              Game.addToPassedCardsTable(user_id, game_id, [
-                card1,
-                card2,
-                card3
-              ]);
-
-              setTimeout(() => {
-                [card1, card2, card3].forEach(card => {
-                  Game.setOwnerOfCard(card, null, game_id);
-                });
-
-                socket.emit("VALID PASS", {
-                  user_id: user_id,
-                  game_id: game_id
-                });
-
-                setTimeout(() => {
-                  Game.checkAllPlayersPassed(game_id).then(cardsPassed => {
-                    if (cardsPassed === true) {
-                      changeCardsOwnership(game_id);
-                    } else {
-                      // notify player to wait for others to pass
-                    }
-                  });
-                }, 100);
-              }, 100);
-            } else {
-              console.log("You already passed.");
-            }
-          });
-        } else {
-          // notify user that either he doesn't have these cards or they are already passed
-        }
-      }
-    );
   });
 
   socket.on("PLAY CARDS", data => {
@@ -295,6 +240,9 @@ gameSocket.on("connection", socket => {
 });
 
 // game logic related functions
+
+// Checks to see if the game needs to be set up. Returns true if so, which
+// is a little confusing.
 const checkGameReady = game_id => {
   return Game.checkGameStateExists(game_id).then(exists => {
     if (exists === false) {
@@ -304,6 +252,7 @@ const checkGameReady = game_id => {
 
           return Game.getPlayerCount(game_id).then(player_count => {
             // check if game room is full to start game
+            console.log(player_count + " " + max_players);
             return Promise.resolve(player_count == max_players);
           });
         })
@@ -342,58 +291,6 @@ const update = game_id => {
   });
 };
 
-const changeCardsOwnership = game_id => {
-  Game.getGamePlayers(game_id).then(game_players => {
-    Game.getCurrentRoundNumber(game_id).then(result => {
-      const round_number = result[0].round_number;
-
-      if (round_number % 4 === 1) {
-        // pass to left
-        for (let i = 0; i < game_players.length; i++) {
-          let { user_id: owner } = game_players[i];
-          let { user_id: player_to_send } = game_players[
-            (i + 1) % game_players.length
-          ];
-
-          passCard(owner, game_id, player_to_send);
-        }
-      } else if (round_number % 4 === 2) {
-        // pass to right
-        for (let i = 0; i < game_players.length; i++) {
-          let { user_id: owner } = game_players[i];
-          let { user_id: player_to_send } = game_players[
-            (i + game_players.length - 1) % game_players.length
-          ];
-
-          passCard(owner, game_id, player_to_send);
-        }
-      } else if (round_number % 4 === 3) {
-        // pass across
-        for (let i = 0; i < game_players.length; i++) {
-          let { user_id: owner } = game_players[i];
-          let { user_id: player_to_send } = game_players[
-            (i + game_players.length / 2) % game_players.length
-          ];
-
-          passCard(owner, game_id, player_to_send);
-        }
-      }
-      startGame(game_id);
-    });
-  });
-};
-
-const passCard = (owner, game_id, player_to_send) => {
-  Game.getPassCardsForUser(owner, game_id).then(cards => {
-    for (let j = 0; j < cards.length; j++) {
-      let card = cards[j].card_id;
-
-      Game.setOwnerOfCard(card, player_to_send, game_id).then(() => {
-        Game.deletePassCard(card, game_id);
-      });
-    }
-  });
-};
 
 const startGame = game_id => {
   setTimeout(() => {
