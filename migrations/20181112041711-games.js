@@ -32,6 +32,11 @@ module.exports = {
       leading_suit: {
         type: Sequelize.INTEGER,
         defaultValue: null
+      },
+      turn_state: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: "BIDDING"
       }
     });
   },

@@ -83,18 +83,7 @@ gameSocket.on("connection", socket => {
     const nudged_player = data.nudged_player;
 
     Game.getCurrentTurn(game_id).then(current_player => {
-      if (current_player[0] == null) {
-        if (nudged_player == null) {
-          Game.nudgePassPhase(game_id).then(() => {
-            update(game_id);
-            setTimeout(() => {
-              gameSocket.to(game_id).emit("GAME OVER", { game_id: game_id });
-              Game.deleteGame(game_id);
-            }, 500);
-          });
-        }
-      } else {
-        if (current_player[0].current_player == nudged_player) {
+      if (current_player.current_player == nudged_player) {
           Game.getUserId(nudged_player).then(current_player_id => {
             Game.giveTotalPointsToPlayer(
               game_id,
@@ -108,9 +97,36 @@ gameSocket.on("connection", socket => {
               }, 500);
             });
           });
-        }
       }
     });
+  });
+  
+  socket.on("USER_BID", data => {
+    const { user_id, game_id, bid } = data;
+    Game.getGamePlayers(game_id).then(gamePlayers => {
+      Game.getTurnSequenceForPlayer(user_id, game_id).then(turnQuery => {
+        let turnSequence = turnQuery[0].turn_sequence;
+        let next_player = turnSequence % gamePlayers.length;
+    
+    	if (bid === 0) { 
+    	 // PASSED. Need to check if we are done.
+    	 Game.getMaxBid(game_id).then(results => {
+    	   let max_user = results[0].user_id;
+    	   if (max_user === next_player) {
+    	      gameSocket.emit("BIDDING DONE", results[0]);
+    	   }
+   		 });
+    	} else {
+    		Game.UpdateBid(user_id, game_id, bid);
+    	}   
+    	Game.setCurrentPlayer(gamePlayers[next_player].user_id,
+                          	  game_id).then(() => {
+                          setTimeout(() => {
+                            return update(game_id);
+                          }, 100);
+                        });
+     });
+   });
   });
 
   socket.on("PLAY CARDS", data => {

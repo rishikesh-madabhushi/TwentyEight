@@ -4,7 +4,6 @@ const {
   CREATE_GAME_QUERY,
   CREATE_GAME_PLAYER_QUERY,
   GET_CURRENT_GAMES_QUERY,
-  CHECK_GAME_QUERY,
   CHECK_GAME_EXISTS_QUERY,
   PLAYER_COUNT_QUERY,
   OBSERVE_GAME_QUERY,
@@ -48,7 +47,10 @@ const {
   TOTAL_POINTS_QUERY,
   GET_MAX_SCORE_QUERY,
   RESET_POINTS_QUERY,
-  VERIFY_PLAYER_QUERY
+  VERIFY_PLAYER_QUERY,
+  UPDATE_BID_QUERY,
+  GET_MAX_BID_QUERY,
+  RESET_BIDS_QUERY
 } = require("./queries");
 
 const createGame = (max_players, user_id, game_name) => {
@@ -201,11 +203,7 @@ const getCurrentTurn = game_id => {
   return db
     .query(TURN_QUERY, [game_id])
     .then(results => {
-      if (results.length == 0) {
-        return Promise.resolve({ current_player: null });
-      } else {
-        return results;
-      }
+        return results[0];
     })
     .catch(error => {
       console.log(error);
@@ -438,6 +436,10 @@ const resetRoundScore = game_id => {
   return db.none(RESET_POINTS_QUERY, [game_id]);
 };
 
+const updateBid = (user_id, game_id, bid) => {
+	return db.none(UPDATE_BID, [user_id, game_id, bid]);
+};
+
 module.exports = {
   createGame,
   createInitialGamePlayer,
@@ -480,5 +482,6 @@ module.exports = {
   getMaximumScore,
   checkGameExists,
   isGamePlayer,
-  getSuit
+  getSuit,
+  updateBid
 };

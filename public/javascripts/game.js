@@ -58,22 +58,15 @@ gameSocket.on("UPDATE", data => {
     leftPlayer = data.shared_player_information[leftPlayerOrder];
     rightPlayer = data.shared_player_information[rightPlayerOrder];
   }
-
+  currentPlayer = data.turn_information.current_player;
   if (observer) {
     turnState = "observer";
-    currentPlayer = data.turn_information[0].current_player;
-  } else if (data.turn_information[0].current_player == username) {
+  } else if (currentPlayer == username) {
     turnState = "play";
-    currentPlayer = data.turn_information[0].current_player;
   } else {
     turnState = "nudge";
-    currentPlayer = data.turn_information[0].current_player;
   }
 
-  selectedFirst = false;
-  selectedSecond = false;
-  selectedThird = false;
-  selectedMultiple = ["0", "0", "0"];
   selectedSingleCard = "0";
   selectedSingle = false;
 
@@ -432,6 +425,13 @@ function selectSingleCard(id) {
   }
 }
 
+function passBid() {
+  console.log("Passing on bid");
+  let bid_msg = document.getElementById("bid-msg");
+  bid_msg.innerHTML +=
+      "<p><strong>" + username + ": </strong> PASSED.</p>";
+}
+
 function buttonDisableLogic() {
   const alertBox = document.getElementsByClassName("alert-box")[0];
 
@@ -505,19 +505,10 @@ function nudgeButton() {
   let btn = document.getElementById("nudge-button");
   btn.disabled = true;
 
-  let nudgedNote = "";
-
-  if (currentPlayer == null) {
-    nudgedNote =
-      "<b>(System)</b> " +
-      username +
-      " has nudged all players; players have 30 seconds to finish passing their cards or they will forfeit!";
-  } else {
-    nudgedNote =
+  let nudgedNote =
       "<b>(System)</b> " +
       currentPlayer +
       " has been nudged and has 30 seconds to play a card or they will forfeit!";
-  }
 
   chatSocket.emit("NUDGE NOTIFICATION", {
     room_id: room.value,

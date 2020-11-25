@@ -29,6 +29,11 @@ module.exports = {
         allowNull: true,
         defaultValue: null
       },
+      current_bid: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        defaultValue: null
+      },
       turn_sequence: {
         type: Sequelize.INTEGER,
         allowNull: false

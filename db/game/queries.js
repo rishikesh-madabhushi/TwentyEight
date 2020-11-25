@@ -172,6 +172,15 @@ const VERIFY_PLAYER_QUERY =
 
 const RESET_POINTS_QUERY =
   "UPDATE game_players SET current_round_score = 0 WHERE game_id = $1";
+ 
+const UPDATE_BIDS_QUERY = 
+  "UPDATE game_players SET current_bid = $1 where user_id = $1 and game_id = $2";
+  
+const RESET_BIDS_QUERY = 
+  "UPDATE game_players SET current_bid = $1 where game_id = $2";
+  
+const GET_MAX_BID_QUERY = 
+  "SELECT MAX(current_bid) as max_bid FROM game_players WHERE game_id = $1";
 
 module.exports = {
   CREATE_GAME_QUERY,
@@ -221,5 +230,8 @@ module.exports = {
   TOTAL_POINTS_QUERY,
   GET_MAX_SCORE_QUERY,
   VERIFY_PLAYER_QUERY,
-  RESET_POINTS_QUERY
+  RESET_POINTS_QUERY,
+  UPDATE_BIDS_QUERY,
+  RESET_BIDS_QUERY,
+  GET_MAX_BID_QUERY
 };
