@@ -27,11 +27,7 @@ const {
   GET_CURRENT_TURN_QUERY,
   GET_CARD_QUERY,
   GET_USER_GAME_CARD_QUERY,
-  PASS_CARD_QUERY,
-  GET_PASS_CARD_QUERY,
   GET_CURRENT_RND_SCORE,
-  GET_ALL_PASS_CARDS,
-  DELETE_PASS_CARD_QUERY,
   SET_CURRENT_PLAYER_QUERY,
   GET_STARTING_PLAYER_QUERY,
   PLAY_CARD_QUERY,
@@ -257,32 +253,8 @@ const verifyUserHasCards = (user_id, game_id, [card1, card2, card3]) => {
     });
 };
 
-const addToPassedCardsTable = (user_id, game_id, [card1, card2, card3]) => {
-  [card1, card2, card3].forEach(card => {
-    return db.none(PASS_CARD_QUERY, [user_id, game_id, card]);
-  });
-};
-
-const checkAllPlayersPassed = game_id => {
-  return maxPlayers(game_id).then(results => {
-    const max_players = results[0].max_players;
-
-    return db.query(GET_PASS_CARD_QUERY, [game_id]).then(results => {
-      return results[0].count == max_players * 3;
-    });
-  });
-};
-
 const getCurrentRoundNumber = game_id => {
   return db.query(GET_CURRENT_RND_SCORE, [game_id]);
-};
-
-const getPassCardsForUser = (user_id, game_id) => {
-  return db.query(GET_ALL_PASS_CARDS, [user_id, game_id]);
-};
-
-const deletePassCard = (card_id, game_id) => {
-  return db.none(DELETE_PASS_CARD_QUERY, [card_id, game_id]);
 };
 
 const setCurrentPlayer = (user_id, game_id) => {
@@ -291,16 +263,6 @@ const setCurrentPlayer = (user_id, game_id) => {
 
 const getStartingPlayer = game_id => {
   return db.query(GET_STARTING_PLAYER_QUERY, [game_id, 2]);
-};
-
-const verifyUserPassedCards = (user_id, game_id) => {
-  return getPassCardsForUser(user_id, game_id)
-    .then(results => {
-      return !(results === undefined || results.length === 0);
-    })
-    .catch(error => {
-      console.log(error);
-    });
 };
 
 const addPlayedCard = (user_id, game_id, card_id) => {
@@ -499,18 +461,13 @@ module.exports = {
   getCurrentTurnId,
   retrieveOwnedCard,
   verifyUserHasCards,
-  addToPassedCardsTable,
-  checkAllPlayersPassed,
   getCurrentRoundNumber,
-  getPassCardsForUser,
-  deletePassCard,
   setCurrentPlayer,
   getStartingPlayer,
   addPlayedCard,
   getTurnSequenceForPlayer,
   getCardsLeft,
   allocatePointsForTurn,
-  verifyUserPassedCards,
   getCardsInPlayCount,
   getLeadingSuit,
   setLeadingSuit,

@@ -23,7 +23,7 @@ const JOIN_GAME_QUERY =
   "VALUES ($1, $2, $3, $4, $5)";
 
 const DELETE_GAME_QUERY =
-  "DELETE FROM cards_in_play WHERE game_id = $1; DELETE FROM passed_cards WHERE game_id = $1; " +
+  "DELETE FROM cards_in_play WHERE game_id = $1; " +
   "DELETE FROM user_game_cards WHERE game_id = $1; DELETE FROM game_observers WHERE game_id = $1; " +
   "DELETE FROM game_players WHERE game_id = $1; DELETE FROM games WHERE game_id = $1;";
 
@@ -103,19 +103,7 @@ const GET_CARD_QUERY =
 const GET_USER_GAME_CARD_QUERY =
   "SELECT * FROM user_game_cards WHERE user_id=$1 AND game_id=$2 AND card_id=$3";
 
-const PASS_CARD_QUERY =
-  "INSERT INTO passed_cards (user_id, game_id, card_id) VALUES ($1, $2, $3)";
-
-const GET_PASS_CARD_QUERY =
-  "SELECT COUNT(DISTINCT card_id) FROM passed_cards WHERE game_id = $1";
-
 const GET_CURRENT_RND_SCORE = "SELECT round_number FROM games WHERE game_id=$1";
-
-const GET_ALL_PASS_CARDS =
-  "SELECT * FROM passed_cards WHERE user_id=$1 AND game_id=$2";
-
-const DELETE_PASS_CARD_QUERY =
-  "DELETE FROM passed_cards WHERE card_id=$1 AND game_id=$2";
 
 const SET_CURRENT_PLAYER_QUERY =
   "UPDATE games SET current_player=$1 WHERE game_id=$2";
@@ -212,11 +200,7 @@ module.exports = {
   GET_CURRENT_TURN_QUERY,
   GET_CARD_QUERY,
   GET_USER_GAME_CARD_QUERY,
-  PASS_CARD_QUERY,
-  GET_PASS_CARD_QUERY,
   GET_CURRENT_RND_SCORE,
-  GET_ALL_PASS_CARDS,
-  DELETE_PASS_CARD_QUERY,
   SET_CURRENT_PLAYER_QUERY,
   GET_STARTING_PLAYER_QUERY,
   PLAY_CARD_QUERY,
