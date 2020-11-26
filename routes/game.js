@@ -42,9 +42,7 @@ gameSocket.on("connection", socket => {
         gameSocket.to(game_id)
             .emit("LOAD PLAYERS", { game_players: username });
 
-        setTimeout(() => {
-        	return startGame(game_id);
-        }, 500);
+        setTimeout(() => { return startGame(game_id);}, 500);
       });
      });
     } else {
@@ -78,56 +76,58 @@ gameSocket.on("connection", socket => {
     });
   });
 
-  socket.on("NUDGE TIMER OVER", data => {
-    const game_id = data.game_id;
-    const nudged_player = data.nudged_player;
+    socket.on("NUDGE TIMER OVER", data => {
+	const game_id = data.game_id;
+	const nudged_player = data.nudged_player;
 
-    Game.getCurrentTurn(game_id).then(current_player => {
-      if (current_player.current_player == nudged_player) {
+	Game.getCurrentTurn(game_id).then(current_player => {
+	    if (current_player.current_player == nudged_player) {
           Game.getUserId(nudged_player).then(current_player_id => {
-            Game.giveTotalPointsToPlayer(
-              game_id,
-              current_player_id.user_id,
-              100
-            ).then(() => {
-              update(game_id);
-              setTimeout(() => {
-                gameSocket.to(game_id).emit("GAME OVER", { game_id: game_id });
-                Game.deleteGame(game_id);
-              }, 500);
-            });
+              Game.giveTotalPointsToPlayer(
+		  game_id,
+		  current_player_id.user_id,
+		  100
+              ).then(() => {
+		  update(game_id);
+		  setTimeout(() => {
+                      gameSocket.to(game_id).emit("GAME OVER",
+						  { game_id: game_id });
+                      Game.deleteGame(game_id);
+		  }, 500);
+              });
           });
-      }
+	    }
+	});
     });
-  });
   
-  socket.on("USER_BID", data => {
-    const { user_id, game_id, bid } = data;
-    Game.getGamePlayers(game_id).then(gamePlayers => {
-      Game.getTurnSequenceForPlayer(user_id, game_id).then(turnQuery => {
-        let turnSequence = turnQuery[0].turn_sequence;
-        let next_player = turnSequence % gamePlayers.length;
-    
-    	if (bid === 0) { 
-    	 // PASSED. Need to check if we are done.
-    	 Game.getMaxBid(game_id).then(results => {
-    	   let max_user = results[0].user_id;
-    	   if (max_user === next_player) {
-    	      gameSocket.emit("BIDDING DONE", results[0]);
-    	   }
-   		 });
-    	} else {
-    		Game.UpdateBid(user_id, game_id, bid);
-    	}   
-    	Game.setCurrentPlayer(gamePlayers[next_player].user_id,
-                          	  game_id).then(() => {
-                          setTimeout(() => {
-                            return update(game_id);
-                          }, 100);
-                        });
-     });
-   });
-  });
+    socket.on("MAKE BID", data => {
+	const { user_id, game_id, bid } = data;
+	Game.getGamePlayers(game_id).then(gamePlayers => {
+	    Game.getTurnSequenceForPlayer(user_id, game_id).then(turnQuery => {
+		let turnSequence = turnQuery[0].turn_sequence;
+		next_player = turnSequence % gamePlayers.length;
+		let max_bid;
+		Game.getMaxBid(game_id).then(results => {
+    		    let max_user = results[0].user_id;
+		    max_bid = results[0].max_bid;
+		    console.log(max_bid + " " + max_user);
+    		    if (max_user === next_player && bid == -1) {
+			// Set Game Stage to Play
+			Game.setGameStage("PLAY");
+    		    }
+		}).then(() => {
+		    Game.updateBid(user_id, game_id, bid);
+		    Game.setCurrentPlayer(
+			gamePlayers[next_player].user_id, game_id).
+			then(() => {
+			    setTimeout(() => {
+				return update(game_id);
+			    }, 100);
+			});
+		});
+	    });
+	});
+    });
 
   socket.on("PLAY CARDS", data => {
     let { user_id, game_id, passed_card: card_played } = data;
@@ -282,24 +282,39 @@ const prepareCards = game_id => {
 };
 
 const update = game_id => {
-  return Game.getSharedInformation(game_id).then(shared_player_information => {
-    for (let index = 0; index < shared_player_information.length; index++) {
-      Game.getHandSize(shared_player_information[index].username, game_id).then(
-        results => {
-          shared_player_information[index]["card_count"] = results.card_count;
-        }
-      );
-    }
-    setTimeout(() => {
-      return Game.getCurrentTurn(game_id).then(turn_information => {
-        gameSocket.to(game_id).emit("UPDATE", {
-          shared_player_information: shared_player_information,
-          turn_information: turn_information
-        });
-        return Promise.resolve(shared_player_information);
-      });
-    }, 100);
-  });
+    let game_stage;
+    Game.getGameStage(game_id).
+	then(results =>
+	     {game_stage = results[0].game_stage;});
+    let max_bid;
+    Game.getMaxBid(game_id).
+	then(results =>
+	     {console.log(results); max_bid = results[0].max_bid;});
+    return Game.getSharedInformation(game_id).
+	then(shared_player_information => {
+	    for (let index = 0; index < shared_player_information.length;
+		 index++) {
+		Game.getHandSize(
+		    shared_player_information[index].username,
+		    game_id).then(results => {
+			shared_player_information[index]["card_count"] =
+			    results.card_count;
+		    });
+	    }
+	    setTimeout(() => {
+		console.log(game_stage);
+		console.log(shared_player_information);
+		return Game.getCurrentTurn(game_id).then(turn_information => {
+		    gameSocket.to(game_id).emit("UPDATE", {
+			shared_player_information: shared_player_information,
+			turn_information: turn_information,
+			game_stage: game_stage,
+			max_bid: max_bid
+		    });
+		    return Promise.resolve(shared_player_information);
+		});
+	    }, 100);
+	});
 };
 
 

@@ -33,7 +33,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: null
       },
-      turn_state: {
+      game_stage: {
         type: Sequelize.STRING,
         allowNull: false,
         defaultValue: "BIDDING"

@@ -1,4 +1,3 @@
-const chatSocket = io();
 // Query DOM
 let msg = document.getElementById("message"),
   room = document.getElementById("room_id"),

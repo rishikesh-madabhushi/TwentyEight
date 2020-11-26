@@ -50,7 +50,9 @@ const {
   VERIFY_PLAYER_QUERY,
   UPDATE_BID_QUERY,
   GET_MAX_BID_QUERY,
-  RESET_BIDS_QUERY
+  RESET_BIDS_QUERY,
+  GET_GAME_STAGE_QUERY,
+  SET_GAME_STAGE_QUERY
 } = require("./queries");
 
 const createGame = (max_players, user_id, game_name) => {
@@ -437,8 +439,20 @@ const resetRoundScore = game_id => {
 };
 
 const updateBid = (user_id, game_id, bid) => {
-	return db.none(UPDATE_BID, [user_id, game_id, bid]);
+	return db.none(UPDATE_BID_QUERY, [user_id, game_id, bid]);
 };
+
+const getMaxBid = (game_id) => {
+	return db.query(GET_MAX_BID_QUERY, [game_id]);
+};
+
+const getGameStage = (game_id) => {
+    return db.query(GET_GAME_STAGE_QUERY, [game_id]);
+}
+
+const setGameStage = (game_id, stage) => {
+    return db.none(SET_GAME_STAGE_QUERY, [game_id, stage]);
+}
 
 module.exports = {
   createGame,
@@ -483,5 +497,8 @@ module.exports = {
   checkGameExists,
   isGamePlayer,
   getSuit,
-  updateBid
+    updateBid,
+    getMaxBid,
+    getGameStage,
+    setGameStage
 };

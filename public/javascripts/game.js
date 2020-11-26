@@ -13,8 +13,11 @@ let selectedFirst = false;
 let selectedSecond = false;
 let selectedThird = false;
 let selectedSingleCard = "0";
-let selectedMultiple = ["0", "0", "0"];
 let gameOver = false;
+let gameStage;
+let max_bid;
+
+const MIN_BID = 13;
 
 gameSocket.on("LOAD PLAYERS", data => {
   playerNames = data.game_players;
@@ -47,34 +50,41 @@ gameSocket.on("LOAD PLAYERS", data => {
 });
 
 gameSocket.on("UPDATE", data => {
-  try {
-    clearTimeout(timer);
-  } catch (e) {}
+    try {
+	clearTimeout(timer);
+    } catch (e) {}
 
-  topPlayer = data.shared_player_information[topPlayerOrder];
-  bottomPlayer = data.shared_player_information[bottomPlayerOrder];
+    topPlayer = data.shared_player_information[topPlayerOrder];
+    bottomPlayer = data.shared_player_information[bottomPlayerOrder];
 
-  if (numPlayers == 4) {
-    leftPlayer = data.shared_player_information[leftPlayerOrder];
-    rightPlayer = data.shared_player_information[rightPlayerOrder];
-  }
-  currentPlayer = data.turn_information.current_player;
-  if (observer) {
-    turnState = "observer";
-  } else if (currentPlayer == username) {
-    turnState = "play";
-  } else {
-    turnState = "nudge";
-  }
+    if (numPlayers == 4) {
+	leftPlayer = data.shared_player_information[leftPlayerOrder];
+	rightPlayer = data.shared_player_information[rightPlayerOrder];
+    }
+    currentPlayer = data.turn_information.current_player;
+    gameStage = data.game_stage;
+    max_bid = data.max_bid;
+    if (observer) {
+	turnState = "observer";
+    } else if (currentPlayer == username) {
+	if (gameStage == "BIDDING") {
+    	    turnState = "bid";
+	} else {
+            turnState = "play"
+	}
+    } else {
+	turnState = "nudge";
+    }
 
-  selectedSingleCard = "0";
-  selectedSingle = false;
+    selectedSingleCard = "0";
+    selectedSingle = false;
 
-  if (observer) {
-    updateGameBoard();
-  } else {
-    gameSocket.emit("GET PLAYER HAND", { user_id: user_id, game_id: game_id });
-  }
+    if (observer) {
+	updateGameBoard();
+    } else {
+	gameSocket.emit("GET PLAYER HAND",
+			{ user_id: user_id, game_id: game_id });
+    }
 });
 
 gameSocket.on("SEND PLAYER HAND", data => {
@@ -213,7 +223,9 @@ function updateGameBoard() {
   }
 
   let buttonString = "";
-  if (turnState == "play") {
+  if (turnState == "bid") {
+    showBidBox();
+  } else if (turnState == "play") {
     buttonString = 'onclick="selectSingleCard(this.id)"';
     gameHtml +=
       '<button class="game-button btn btn-primary" id="single-button" onclick="playButton()" disabled>Play</button>';
@@ -425,11 +437,62 @@ function selectSingleCard(id) {
   }
 }
 
+function hideBidBox() {
+  let bidbox = document.getElementById("bid-box");
+  bidbox.style.display = "none";
+}
+
+function showBidBox() {
+    let bidbox = document.getElementById("bid-box");
+    bidbox.style.display = "inline-block";
+    let pass_button = document.getElementById("pass")
+    console.log("Max bid " + max_bid);
+    if (max_bid < MIN_BID) {
+	pass_button.disabled = true;
+    } else {
+	pass_button.disabled = false;
+	if (max_bid == 28) {
+	    let bid_button = document.getElementById("bid");
+	    bid_button.disabled = true;
+	} else {
+	    let slider = document.getElementById("bidder");
+	    slider.min = max_bid + 1;
+	}
+    }
+}
+
 function passBid() {
+  let message =  username + " PASSED.";
   console.log("Passing on bid");
-  let bid_msg = document.getElementById("bid-msg");
-  bid_msg.innerHTML +=
-      "<p><strong>" + username + ": </strong> PASSED.</p>";
+  chatSocket.emit("chat", {
+    room_id: game_id,
+    message: message,
+    handle: "Admin"
+  });
+  hideBidBox();
+  gameSocket.emit("MAKE BID", {
+    user_id: user_id,
+    game_id: game_id,
+    bid: -1
+  });
+}
+
+function doBid() {
+  console.log("Made a bid");
+  let bidder = document.getElementById("bidder");
+  let message =  username + " bid " + bidder.value;
+  chatSocket.emit("chat", {
+    room_id: game_id,
+    message: message,
+    handle: "Admin"
+  });
+  hideBidBox();
+  gameSocket.emit("MAKE BID", {
+    user_id: user_id,
+    game_id: game_id,
+    bid: bidder.value
+  });
+  
 }
 
 function buttonDisableLogic() {

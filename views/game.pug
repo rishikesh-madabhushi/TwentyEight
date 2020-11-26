@@ -35,13 +35,11 @@ body(class = 'general-body')
                 input(id='room_id', type='hidden')
                 button.btn.btn-primary(id='send', style='width: 100%') Send 
                 
-        div(class='bid-box')
+        div(class='bid-box', id = 'bid-box')
             h3(class='no-vertical-padding') Bids
             div
-                div(id='bid-window')
-                    div(id='bid-msg')
                 input(id = 'bidder', type='range', min='13', max='28', value='13', oninput='bid.innerHTML="Bid " + bidder.value')
-                button.btn.btn-primary(id='bid', style='width: 50%') Bid 
+                button.btn.btn-primary(id='bid', onclick='doBid()', style='width: 50%') Bid 
                 button.btn.btn-secondary(id='pass', style='width: 50%', onclick='passBid()') Pass                 
        
     script.
@@ -49,5 +47,6 @@ body(class = 'general-body')
         const user_id = '#{user.user_id}'
         const game_id = '#{game_id}'
         document.getElementById('room_id').value = game_id
+        const chatSocket = io();
     script(src='/javascripts/chat.js')
     script(src='/javascripts/game.js')

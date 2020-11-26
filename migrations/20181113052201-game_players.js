@@ -31,8 +31,8 @@ module.exports = {
       },
       current_bid: {
         type: Sequelize.INTEGER,
-        allowNull: true,
-        defaultValue: null
+        allowNull: false,
+        defaultValue: 0
       },
       turn_sequence: {
         type: Sequelize.INTEGER,
