@@ -289,7 +289,7 @@ const update = game_id => {
     let max_bid;
     Game.getMaxBid(game_id).
 	then(results =>
-	     {console.log(results); max_bid = results[0].max_bid;});
+	     {max_bid = results[0].max_bid;});
     return Game.getSharedInformation(game_id).
 	then(shared_player_information => {
 	    for (let index = 0; index < shared_player_information.length;
@@ -302,8 +302,6 @@ const update = game_id => {
 		    });
 	    }
 	    setTimeout(() => {
-		console.log(game_stage);
-		console.log(shared_player_information);
 		return Game.getCurrentTurn(game_id).then(turn_information => {
 		    gameSocket.to(game_id).emit("UPDATE", {
 			shared_player_information: shared_player_information,
