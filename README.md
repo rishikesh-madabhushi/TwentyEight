@@ -1,7 +1,7 @@
 # TwentyEight Game
 Rishikesh Madabhushi
 
-based on version of Hearts by:
+based on a version of Hearts by:
 Rohan Patel, Jake Carter, Richard Robinson, Guanming Pan
 https://github.com/rohan8594/Hearts-Game/
 
@@ -11,7 +11,7 @@ This is a real-time, multiplayer, online application to play the card game Twent
 
 ## Features
 Nothing really works yet, but the basic skeleton exists:
-  - Need to add trump support
+  - Need to add trumping support
   - scoring
   - fixing bugs
 

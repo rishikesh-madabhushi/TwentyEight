@@ -31,18 +31,7 @@ body(class = 'general-body')
                     option(value=4, selected) 4
                 button.btn.btn-primary(class="create-button", id='create-game-btn', type='submit') Create Game
 
-        div(class = 'chat-box')
-            h1(class='no-vertical-padding') Lobby chat
-            div
-                div(id='chat-window')
-                    div(id='output')
-                    div(id='feedback')
-                input(id='message', type='text', placeholder='Message', style='color: black')
-                input(id='room_id', type='hidden', value='0')
-                button.btn.btn-primary(id='send', style='width: 100%') Send
-
     script.
       const username = '#{user.username}'
       const user_id = '#{user.user_id}'
-    script(src='/javascripts/chat.js')
     script(src='/javascripts/lobby.js')
