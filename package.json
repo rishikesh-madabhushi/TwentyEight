@@ -1,5 +1,5 @@
 {
-  "name": "term-project-hearts-game",
+  "name": "twentyeight-game",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -8,36 +8,32 @@
     "db:create:migration": "sequelize migration:generate --name ",
     "db:migrate": "sequelize db:migrate",
     "db:rollback": "sequelize db:migrate:undo",
-    "postinstall": "sequelize db:migrate",
-    "db:create:seed": "sequelize seed:generate --name ",
-    "db:seed:all": "sequelize db:seed:all",
-    "db:seed": "sequelize db:seed --seed ",
-    "db:seed:undo": "sequelize db:seed:undo:all"
+    "postinstall": "sequelize db:migrate"
   },
   "dependencies": {
     "bcrypt": "^5.0.0",
-    "body-parser": "^1.18.3",
-    "clean-css": "^4.2.1",
-    "cookie-parser": "~1.4.3",
-    "debug": "~2.6.9",
-    "dotenv": "^6.1.0",
-    "event-stream": "^3.3.4",
-    "express": "~4.16.0",
-    "express-session": "^1.15.6",
-    "express-validator": "^5.3.0",
-    "http-errors": "~1.6.2",
-    "morgan": "~1.9.0",
-    "passport": "^0.4.0",
+    "body-parser": "^1.19.0",
+    "clean-css": "^4.2.3",
+    "cookie-parser": "^1.4.5",
+    "debug": "~4.3.1",
+    "dotenv": "^8.2.0",
+    "event-stream": "^4.0.1",
+    "express": "~4.17.1",
+    "express-session": "^1.17.1",
+    "express-validator": "^6.7.0",
+    "http-errors": "~1.8.0",
+    "morgan": "~1.10.0",
+    "passport": "^0.4.1",
     "passport-local": "^1.0.0",
-    "pg-promise": "^8.5.0",
-    "pug": "^2.0.4",
+    "pg-promise": "^10.8.0",
+    "pug": "^3.0.0",
     "save": "^2.4.0",
-    "sequelize": "^5.22.3",
-    "sequelize-cli": "^5.5.1",
-    "set-value": "^3.0.1",
-    "socket.io": "^2.1.1"
+    "sequelize": "^6.3.5",
+    "sequelize-cli": "^6.2.0",
+    "set-value": "^3.0.2",
+    "socket.io": "^3.0.3"
   },
   "devDependencies": {
-    "nodemon": "^1.18.4"
+    "nodemon": "^2.0.6"
   }
 }

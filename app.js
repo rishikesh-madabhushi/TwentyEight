@@ -3,7 +3,6 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
-const expressValidator = require("express-validator");
 const session = require("express-session");
 const bodyParser = require("body-parser");
 
@@ -32,7 +31,6 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
-app.use(expressValidator());
 
 // passport and sessions related stuff
 app.use(
