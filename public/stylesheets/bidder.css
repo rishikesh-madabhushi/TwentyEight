@@ -9,7 +9,6 @@ h2 {
   box-shadow: 1px 3px 5px rgba(0, 0, 0, 0.05);
   border-radius: 2px;
   height: 5vh;
-  min-height: 80px;
   overflow: auto;
   background: #f9f9f9;
 }

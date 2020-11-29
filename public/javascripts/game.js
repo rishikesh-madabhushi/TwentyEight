@@ -17,7 +17,8 @@ let gameOver = false;
 let gameStage;
 let max_bid;
 
-const MIN_BID = 13;
+const MIN_BID = 14;
+const MAX_BID = 28;
 
 gameSocket.on("LOAD PLAYERS", data => {
   playerNames = data.game_players;
@@ -439,25 +440,38 @@ function selectSingleCard(id) {
 
 function hideBidBox() {
   let bidbox = document.getElementById("bid-box");
-  bidbox.style.display = "none";
+    //bidbox.style.display = "none";
+    bidbox.style.opacity = 0
+    setTimeout(() => {bidbox.style.display = "none";}, 1000);
 }
 
 function showBidBox() {
     let bidbox = document.getElementById("bid-box");
-    bidbox.style.display = "inline-block";
+    bidbox.style.display = "block";
+    setTimeout(() => {bidbox.style.opacity = 1;}, 500);
     let pass_button = document.getElementById("pass")
+    let bid_button = document.getElementById("bid");
+    let slider = document.getElementById("bidder");
+    
     console.log("Max bid " + max_bid);
+    let min_allowed_bid;
+
     if (max_bid < MIN_BID) {
 	pass_button.disabled = true;
+	min_allowed_bid = MIN_BID;
     } else {
+	min_allowed_bid = max_bid + 1;
 	pass_button.disabled = false;
-	if (max_bid == 28) {
-	    let bid_button = document.getElementById("bid");
-	    bid_button.disabled = true;
-	} else {
-	    let slider = document.getElementById("bidder");
-	    slider.min = max_bid + 1;
-	}
+    }
+    if (max_bid == MAX_BID) {
+	bid_button.disabled = true;
+	slider.disabled = true;
+    } else {
+	bid_button.disabled = false;
+	slider.disabled = false;
+	slider.min = min_allowed_bid;
+	slider.value = min_allowed_bid;
+	bid_button.innerHTML = "Bid " + min_allowed_bid;
     }
 }
 
