@@ -107,13 +107,12 @@ gameSocket.on("connection", socket => {
 		let turnSequence = turnQuery[0].turn_sequence;
 		next_player = turnSequence % gamePlayers.length;
 		let max_bid;
-		Game.getMaxBid(game_id).then(results => {
+		Game.getBids(game_id).then(results => {
     		    let max_user = results[0].user_id;
-		    max_bid = results[0].max_bid;
-		    console.log(max_bid + " " + max_user);
-    		    if (max_user === next_player && bid == -1) {
+		    max_bid = results[0].bid;
+    		    if (max_user === gamePlayers[next_player].user_id && bid == -1) {
 			// Set Game Stage to Play
-			Game.setGameStage("PLAY");
+			Game.setGameStage(game_id, "PLAY");
     		    }
 		}).then(() => {
 		    Game.updateBid(user_id, game_id, bid);
@@ -287,10 +286,10 @@ const update = game_id => {
 	then(results =>
 	     {game_stage = results[0].game_stage;});
     let max_bid;
-    Game.getMaxBid(game_id).
+    return Game.getBids(game_id).
 	then(results =>
-	     {max_bid = results[0].max_bid;});
-    return Game.getSharedInformation(game_id).
+	     {max_bid = results[0].bid;}).then(() => {
+		 Game.getSharedInformation(game_id).
 	then(shared_player_information => {
 	    for (let index = 0; index < shared_player_information.length;
 		 index++) {
@@ -312,7 +311,8 @@ const update = game_id => {
 		    return Promise.resolve(shared_player_information);
 		});
 	    }, 100);
-	});
+	})
+	     });
 };
 
 

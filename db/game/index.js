@@ -49,7 +49,7 @@ const {
   RESET_POINTS_QUERY,
   VERIFY_PLAYER_QUERY,
   UPDATE_BID_QUERY,
-  GET_MAX_BID_QUERY,
+  GET_BIDS_QUERY,
   RESET_BIDS_QUERY,
   GET_GAME_STAGE_QUERY,
   SET_GAME_STAGE_QUERY
@@ -442,8 +442,8 @@ const updateBid = (user_id, game_id, bid) => {
 	return db.none(UPDATE_BID_QUERY, [user_id, game_id, bid]);
 };
 
-const getMaxBid = (game_id) => {
-	return db.query(GET_MAX_BID_QUERY, [game_id]);
+const getBids = (game_id) => {
+	return db.query(GET_BIDS_QUERY, [game_id]);
 };
 
 const getGameStage = (game_id) => {
@@ -498,7 +498,7 @@ module.exports = {
   isGamePlayer,
   getSuit,
     updateBid,
-    getMaxBid,
+    getBids,
     getGameStage,
     setGameStage
 };

@@ -184,8 +184,8 @@ const UPDATE_BID_QUERY =
 const RESET_BIDS_QUERY = 
   "UPDATE game_players SET current_bid = $1 where game_id = $2";
   
-const GET_MAX_BID_QUERY = 
-  "SELECT MAX(current_bid) as max_bid FROM game_players WHERE game_id = $1";
+const GET_BIDS_QUERY = 
+  "SELECT current_bid as bid, user_id FROM game_players WHERE game_id = $1 ORDER BY current_bid DESC";
 
 module.exports = {
   CREATE_GAME_QUERY,
@@ -238,7 +238,7 @@ module.exports = {
   RESET_POINTS_QUERY,
   UPDATE_BID_QUERY,
   RESET_BIDS_QUERY,
-  GET_MAX_BID_QUERY,
+  GET_BIDS_QUERY,
   GET_GAME_STAGE_QUERY,
   SET_GAME_STAGE_QUERY
 };
