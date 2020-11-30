@@ -52,18 +52,11 @@ chatSocket.on("entry msg", data => {
   const { room_id, handle } = data;
 
   if (room.value == room_id) {
-    if (room.value == 0) {
-      output.innerHTML +=
-        '<p style="color: #aaa;"><em>' +
-        handle +
-        " has entered the lobby...</em></p>";
-    } else {
       output.innerHTML +=
         '<p style="color: #aaa;"><em>' +
         handle +
         " has entered the room...</em></p>";
     }
-  }
 });
 
 chatSocket.on("typing msg", data => {

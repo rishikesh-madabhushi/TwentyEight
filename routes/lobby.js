@@ -5,6 +5,8 @@ const Game = require("../db/game");
 const lobbySocket = io.of("/lobby");
 const isAuthenticated = require("../config/passport/isAuthenticated");
 
+const { check, validationResult } = require('express-validator'); 
+
 router.get("/", isAuthenticated, (req, res) => {
   const { user } = req;
   const passedError = req.query.error;
@@ -12,35 +14,39 @@ router.get("/", isAuthenticated, (req, res) => {
   res.render("lobby", { user: user, title: "TwentyEight", error: passedError });
 });
 
-router.post("/createGame", isAuthenticated, (req, res) => {
-  const { user } = req;
-  const { max_players, game_name } = req.body;
+router.post("/createGame", [
+    check('game_name', "Game name cannot be empty")
+	.not()
+	.isEmpty()
+], isAuthenticated, (req, res) => {
+    const { user } = req;
+    const { max_players, game_name } = req.body;
 
-  req.checkBody("game_name", "Game name cannot be empty").notEmpty();
-  const errors = req.validationErrors();
+    const errors = validationResult(req).errors;
+    console.log(errors);
 
-  if (errors) {
-    const errStr = encodeURIComponent(errors[0].msg);
-    res.redirect("/lobby?error=" + errStr);
-  } else {
-    Game.createGame(max_players, user.user_id, game_name)
-      .then(results => {
-        const { game_id } = results[0];
-        Game.createInitialGamePlayer(user.user_id, game_id)
-          .then(() => {
-            Game.joinCardsInPlay(user.user_id, game_id);
+    if (errors.length) {
+	const errStr = encodeURIComponent(errors[0].msg);
+	res.redirect("/lobby?error=" + errStr);
+    } else {
+	Game.createGame(max_players, user.user_id, game_name)
+	    .then(results => {
+		const { game_id } = results[0];
+		Game.createInitialGamePlayer(user.user_id, game_id)
+		    .then(() => {
+			Game.joinCardsInPlay(user.user_id, game_id);
 
-            lobbySocket.emit("GET GAMES");
-            res.redirect(`/game/${game_id}`);
-          })
-          .catch(error => {
-            console.log(error);
-          });
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  }
+			lobbySocket.emit("GET GAMES");
+			res.redirect(`/game/${game_id}`);
+		    })
+		    .catch(error => {
+			console.log(error);
+		    });
+	    })
+	    .catch(error => {
+		console.log(error);
+	    });
+    }
 });
 
 router.get("/logout", (req, res) => {
