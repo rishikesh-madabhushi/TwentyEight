@@ -8,38 +8,54 @@ head
 
 body(class = 'general-body')
   div(class='banner')
-    h1(class='banner-align-left') Hearts - Rules
+    h1(class='banner-align-left') TwentyEight - Rules
 
   div
     h2(style='color:whitesmoke') Rules
     ul
-      li Hearts is a card game utilizing a standard 52 card deck.
+      li TwentyEight is a card game using 32 cards (7, 8, 9, 10, J, K, Q, A) out of a standard 52 card deck.
+      li There are typically 4 players divided into two teams.
 
     h2(style='color:whitesmoke') Objective:
     ul
-      li To be the player with the lowest overall Score.
-      li This implementation will declare a winner upon one player exceeding 100 points.
+      li There is a bidding phase in each round, at the end of which, the team with the winning bid tries to achieve its goals.
+      li There can be many rounds. There is no set end point to a game.
 
     h2(style='color:whitesmoke') Dealing:
     ul
       li Cards are dealt to each player equally so each player starts with the same number of cards.
 
-    h2(style='color:whitesmoke') Passing:
+    h2(style='color:whitesmoke') Bidding:
     ul
-      li Upon starting each player chooses 3 cards to pass to a neighbor in the following sequence: left, right, across, hold. In the case of two players, the cards are passed across three times, then kept.
+      li The player to the left of the dealer starts the bidding, and they must bid at least 14 points.
+      li The bidding continues counter-clockwise until all other players pass or someone has bid 28 (the maximum number of points).
+      li The player winning the bid names one of the suit as the trump.
+      
+    h2(style='color:whitesmoke') Card Values:
+    ul
+      li Jack: 3 points
+      li Nine: 2 points
+      li Ace: 1 point
+      li Ten: 1 point
+      li King: 0 points
+      li Queen: 0 points
+      li Eight: 0 points
+      li Seven: 0 points
+      li The cards 'power' follows the list above. A card higher in the list always wins over a card lower in the list (of the same suit).
 
-    h2(style='color:whitesmoke') Starting and Playing:
+    h2(style='color:whitesmoke') Playing:
     ul
-      li To begin, the player with the two of clubs goes first and must play the two of clubs.
+      li The person who started the bidding puts down the first card.
       li The suit of the card must be followed if the player has a card of that suit.
       li Example: 4 of clubs played
-      li Next player must play a club if they have one, if they do not they can play any card.
-      li The player with the highest face value following the suit gets the cards.
-      li Hearts can not be played as the lead suit unless the player has only hearts in their hand or until “Hearts have been broken” - meaning somebody has already played a heart.
-      li Each heart taken is worth 1 point.
-      li The queen of spades is worth 13 points.
-      li  If one player takes every heart and the queen of spades then every other player gets 26 points and that player gets 0 for that deal.  This is called "Shooting the Moon".
-
-    h2(style='color:whitesmoke') Winning:
-    ul
-      li The player with the least number of points once a player exceeds 100 points is declared the winner!
+      li Next player must play a club if they have one, if they do not they have two choices.
+      li They can play any card of any other suit or a card of the trump suit. If the trump has not been revealed yet, they ask the bid winner to name the suit of the trump, and the trump suit is revealed to all.
+      li If no trump is played, the highest card (according to the card value list) in the lead suit is the winner. And, that player's team gets all the points in the round.
+      li If trump(s) are played, the winner is the person who played the highest trump.
+      li The winner of the previous round leads the next round.
+      li The winning bidder cannot lead with the trump suit unless trumps have already been revealed.
+      li The game continues until all cards have been played.
+      li The number of points earned by each team is totaled up.
+      li If the winning bidder's team has attained their goal, they win the game round, otherwise they lose.
+      li The next game round starts again with freshly dealt hands. The bidding starts with the person to the left of the person who started the previous game round.
+     
