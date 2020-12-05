@@ -288,58 +288,65 @@ const getCardsInPlay = game_id => {
   return db.query(CARDS_IN_PLAY_QUERY, [game_id]);
 };
 
+const getCardValue = card_id => {
+    let card_val = (card_id - 1) % 8;
+    let value = 0;
+    if (card_val === 0) {
+        value = 1.5; // Ace
+    } else if (card_val === 5) {
+        value = 3; // Jack
+    } else if (card_val === 4) {
+        value = 1; // Ten
+    } else if (card_val === 3) {
+        value = 2; // Nine
+    } else if (card_val === 7) {
+        value = 0.5; // King
+    } else if (card_val === 6) {
+        value = 0.4; // Queen
+    } else if (card_val === 2) {
+        value = 0.3; // Eight
+    } else if (card_val === 1) {
+        value = 0.2; // Seven
+    }
+    return value;
+};
+
 //0 Club
 //1 Diamond
 //2 Heart
 //3 Spade
 const checkPlayerTakingCards = game_id => {
-  //get cards
-  return getCardsInPlay(game_id).then(cardsInPlay => {
-    return getLeadingSuit(game_id).then(results => {
-      let lead_suit = results[0].leading_suit;
+    //get cards
+    return getCardsInPlay(game_id).then(cardsInPlay => {
+	return getLeadingSuit(game_id).then(results => {
+	    let lead_suit = results[0].leading_suit;
 
-      let max_value = 0;
-      let player_taking_hand;
-      let points_on_table = 0;
+	    let max_value = 0;
+	    let player_taking_hand;
+	    let points_on_table = 0;
 
-      for (let index = 0; index < cardsInPlay.length; index++) {
-        let current_card = cardsInPlay[index].card_id;
-        let current_suit = getSuit(current_card);
-        let card_val = (current_card - 1) % 8;
-        if (card_val === 0) {
-          value = 1.5; // Ace
-        } else if (card_val === 5) {
-          value = 3; // Jack
-        } else if (card_val === 4) {
-          value = 1; // Ten
-        } else if (card_val === 3) {
-          value = 2; // Nine
-        } else if (card_val === 7) {
-          value = 0.5; // King
-        } else if (card_val === 6) {
-          value = 0.4; // Queen
-        } else if (card_val === 2) {
-          value = 0.3; // Eight
-        } else if (card_val === 1) {
-          value = 0.2; // Seven
-        }
-        points_on_table += Math.floor(value);
+	    for (let index = 0; index < cardsInPlay.length; index++) {
+		let current_card = cardsInPlay[index].card_id;
+		let current_suit = getSuit(current_card);
+		let value = getCardValue(current_card);
+
+		points_on_table += Math.floor(value);
               
-        if (current_suit == lead_suit) {
-          if (value > max_value) {
-            max_value = value;
-            player_taking_hand = cardsInPlay[index].user_id;
-          }
-        }
-      }
-      return Promise.resolve([
-        {
-          player_taking_hand: player_taking_hand,
-          points_on_table: points_on_table
-        }
-      ]);
+		if (current_suit == lead_suit) {
+		    if (value > max_value) {
+			max_value = value;
+			player_taking_hand = cardsInPlay[index].user_id;
+		    }
+		}
+	    }
+	    return Promise.resolve([
+		{
+		    player_taking_hand: player_taking_hand,
+		    points_on_table: points_on_table
+		}
+	    ]);
+	});
     });
-  });
 };
 
 const allocatePointsForTurn = game_id => {
@@ -496,7 +503,8 @@ module.exports = {
   getMaximumScore,
   checkGameExists,
   isGamePlayer,
-  getSuit,
+    getSuit,
+    getCardValue,
     updateBid,
     getBids,
     getGameStage,

@@ -170,15 +170,15 @@ gameSocket.on("GAME OVER", data => {
 
 // TODO: Put these in some utility location
 const getSuit = (card) => {
-	return Math.floor((card - 1) / 8);
+    return Math.floor((card - 1) / 8);
 };
 
 const getCardValue = (card) => {
-	let card_idx = (card - 1) % 8;
-	if (card_idx != 0) {
-	   return card_idx + 5;
-	}
-	return 0;
+    let card_idx = (card - 1) % 8;
+    if (card_idx != 0) {
+	return card_idx + 5;
+    }
+    return 0;
 }
 
 function updateGameBoard() {

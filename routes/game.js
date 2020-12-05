@@ -63,18 +63,30 @@ gameSocket.on("connection", socket => {
     }
   });
 
-  // game events
-  socket.on("NUDGE NOTIFICATION", data => {
-    nudge_timer = data.nudge_timer;
-  });
-
-  socket.on("GET PLAYER HAND", data => {
-    const { user_id, game_id } = data;
-
-    Game.getPlayerCards(user_id, game_id).then(player_hand => {
-      socket.emit("SEND PLAYER HAND", { player_hand: player_hand });
+    // game events
+    socket.on("NUDGE NOTIFICATION", data => {
+	nudge_timer = data.nudge_timer;
     });
-  });
+
+    function sortCards(a, b) {
+	var asuit = Game.getSuit(a.card_id);
+	var bsuit = Game.getSuit(b.card_id);
+	if (asuit != bsuit) {
+	    return asuit - bsuit;
+	}
+	acard = Game.getCardValue(a.card_id);
+	bcard = Game.getCardValue(b.card_id);
+	return acard - bcard;
+    };
+
+    socket.on("GET PLAYER HAND", data => {
+	const { user_id, game_id } = data;
+
+	Game.getPlayerCards(user_id, game_id).then(player_hand => {
+	    let sortedHand = player_hand.sort(sortCards);
+	    socket.emit("SEND PLAYER HAND", { player_hand: sortedHand });
+	});
+    });
 
     socket.on("NUDGE TIMER OVER", data => {
 	const game_id = data.game_id;
