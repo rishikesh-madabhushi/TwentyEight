@@ -1,6 +1,6 @@
 const CREATE_GAME_QUERY =
-  "INSERT INTO games (max_players, game_name, round_number) VALUES " +
-  "($1, $2, $3) RETURNING game_id";
+  "INSERT INTO games (max_players, game_name, starting_player, current_player, round_number) VALUES " +
+  "($1, $2, $3, $3, $4) RETURNING game_id";
 
 const CREATE_GAME_PLAYER_QUERY =
   "INSERT INTO game_players (user_id, game_id, total_score, current_round_score, " +
@@ -109,7 +109,7 @@ const SET_CURRENT_PLAYER_QUERY =
   "UPDATE games SET current_player=$1 WHERE game_id=$2";
 
 const GET_STARTING_PLAYER_QUERY =
-  "SELECT user_id FROM user_game_cards WHERE game_id=$1 AND card_id=$2";
+  "SELECT starting_player FROM games WHERE game_id=$1";
 
 const PLAY_CARD_QUERY =
   "UPDATE cards_in_play SET card_id = $1 WHERE user_id = $2 AND game_id = $3";
@@ -179,13 +179,10 @@ const RESET_POINTS_QUERY =
   "UPDATE game_players SET current_round_score = 0 WHERE game_id = $1";
  
 const UPDATE_BID_QUERY = 
-  "UPDATE game_players SET current_bid = $3 where user_id = $1 and game_id = $2";
+     "UPDATE games SET winning_bid = $3, winning_bidder = $1 where game_id = $2";
   
-const RESET_BIDS_QUERY = 
-  "UPDATE game_players SET current_bid = $1 where game_id = $2";
-  
-const GET_BIDS_QUERY = 
-  "SELECT current_bid as bid, user_id FROM game_players WHERE game_id = $1 ORDER BY current_bid DESC";
+const GET_BID_QUERY = 
+      "SELECT winning_bidder, winning_bid FROM games WHERE game_id = $1";
 
 module.exports = {
   CREATE_GAME_QUERY,
@@ -237,8 +234,7 @@ module.exports = {
   VERIFY_PLAYER_QUERY,
   RESET_POINTS_QUERY,
   UPDATE_BID_QUERY,
-  RESET_BIDS_QUERY,
-  GET_BIDS_QUERY,
+  GET_BID_QUERY,
   GET_GAME_STAGE_QUERY,
   SET_GAME_STAGE_QUERY
 };

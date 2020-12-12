@@ -8,10 +8,14 @@ const isAuthenticated = require("../config/passport/isAuthenticated");
 const { check, validationResult } = require('express-validator'); 
 
 router.get("/", isAuthenticated, (req, res) => {
-  const { user } = req;
-  const passedError = req.query.error;
+    const { user } = req;
+    const passedError = req.query.error;
 
-  res.render("lobby", { user: user, title: "TwentyEight", error: passedError });
+    res.render("lobby", {
+	user: user,
+	title: "TwentyEight",
+	error: passedError
+    });
 });
 
 router.post("/createGame", [

@@ -49,14 +49,14 @@ const {
   RESET_POINTS_QUERY,
   VERIFY_PLAYER_QUERY,
   UPDATE_BID_QUERY,
-  GET_BIDS_QUERY,
+  GET_BID_QUERY,
   RESET_BIDS_QUERY,
   GET_GAME_STAGE_QUERY,
   SET_GAME_STAGE_QUERY
 } = require("./queries");
 
 const createGame = (max_players, user_id, game_name) => {
-  return db.query(CREATE_GAME_QUERY, [max_players, game_name, 1]);
+    return db.query(CREATE_GAME_QUERY, [max_players, game_name, user_id, 1]);
 };
 
 const createInitialGamePlayer = (user_id, game_id) => {
@@ -261,8 +261,9 @@ const setCurrentPlayer = (user_id, game_id) => {
   return db.none(SET_CURRENT_PLAYER_QUERY, [user_id, game_id]);
 };
 
-const getStartingPlayer = game_id => {
-  return db.query(GET_STARTING_PLAYER_QUERY, [game_id, 2]);
+async function getStartingPlayer(game_id) {
+    results = db.one(GET_STARTING_PLAYER_QUERY, [game_id]);
+    return results[0].user_id
 };
 
 const addPlayedCard = (user_id, game_id, card_id) => {
@@ -442,15 +443,15 @@ const getSuit = (card) => {
 };
 
 const resetRoundScore = game_id => {
-  return db.none(RESET_POINTS_QUERY, [game_id]);
+    return db.none(RESET_POINTS_QUERY, [game_id]);
 };
 
 const updateBid = (user_id, game_id, bid) => {
-	return db.none(UPDATE_BID_QUERY, [user_id, game_id, bid]);
+    return db.none(UPDATE_BID_QUERY, [user_id, game_id, bid]);
 };
 
-const getBids = (game_id) => {
-	return db.query(GET_BIDS_QUERY, [game_id]);
+async function getTopBid(game_id) {
+    return db.one(GET_BID_QUERY, [game_id]);
 };
 
 const getGameStage = (game_id) => {
@@ -506,7 +507,7 @@ module.exports = {
     getSuit,
     getCardValue,
     updateBid,
-    getBids,
+    getTopBid,
     getGameStage,
     setGameStage
 };
