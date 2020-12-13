@@ -52,7 +52,8 @@ const {
   GET_BID_QUERY,
   RESET_BIDS_QUERY,
   GET_GAME_STAGE_QUERY,
-  SET_GAME_STAGE_QUERY
+    SET_GAME_STAGE_QUERY,
+    SET_STARTING_PLAYER_QUERY
 } = require("./queries");
 
 const createGame = (max_players, user_id, game_name) => {
@@ -212,8 +213,9 @@ const getCurrentTurn = game_id => {
     });
 };
 
-const getCurrentTurnId = game_id => {
-  return db.query(GET_CURRENT_TURN_QUERY, [game_id]);
+const getCurrentTurnId = async game_id => {
+    return db.one(GET_CURRENT_TURN_QUERY, [game_id]).then(
+    	result => { return result.current_player; });
 };
 
 const retrieveOwnedCard = (user_id, game_id, card_id) => {
@@ -262,8 +264,8 @@ const setCurrentPlayer = (user_id, game_id) => {
 };
 
 async function getStartingPlayer(game_id) {
-    results = db.one(GET_STARTING_PLAYER_QUERY, [game_id]);
-    return results[0].user_id
+    return db.one(GET_STARTING_PLAYER_QUERY, [game_id]).then(
+	result => { return result.starting_player; });
 };
 
 const addPlayedCard = (user_id, game_id, card_id) => {
@@ -282,7 +284,8 @@ const getTurnSequenceForPlayer = (user_id, game_id) => {
 };
 
 const getCardsLeft = game_id => {
-  return db.query(CARDS_LEFT_QUERY, [game_id]);
+    return db.one(CARDS_LEFT_QUERY, [game_id]).then(
+	result => { return result.cards_left });
 };
 
 const getCardsInPlay = game_id => {
@@ -319,9 +322,7 @@ const getCardValue = card_id => {
 const checkPlayerTakingCards = game_id => {
     //get cards
     return getCardsInPlay(game_id).then(cardsInPlay => {
-	return getLeadingSuit(game_id).then(results => {
-	    let lead_suit = results[0].leading_suit;
-
+	return getLeadingSuit(game_id).then(lead_suit => {
 	    let max_value = 0;
 	    let player_taking_hand;
 	    let points_on_table = 0;
@@ -373,11 +374,18 @@ const givePointsToPlayer = (game_id, user_id, points) => {
 };
 
 const getCardsInPlayCount = game_id => {
-  return db.query(CARDS_COUNT_QUERY, [game_id]);
+    return db.one(CARDS_COUNT_QUERY, [game_id]).then(
+	result => { return result.count });
 };
 
 const getLeadingSuit = game_id => {
-  return db.query(GET_LEAD_SUIT_QUERY, [game_id]);
+    return db.oneOrNone(GET_LEAD_SUIT_QUERY, [game_id]).then(
+	results => {
+	    if (results)
+		return results.leading_suit;
+	    else
+		return null;
+	});
 };
 
 const setLeadingSuit = (game_id, lead_suit) => {
@@ -455,11 +463,16 @@ async function getTopBid(game_id) {
 };
 
 const getGameStage = (game_id) => {
-    return db.query(GET_GAME_STAGE_QUERY, [game_id]);
+    return db.one(GET_GAME_STAGE_QUERY, [game_id]).then(
+	results => { return results.game_stage;});
 }
 
 const setGameStage = (game_id, stage) => {
     return db.none(SET_GAME_STAGE_QUERY, [game_id, stage]);
+}
+
+const setStartingPlayer = (game_id, user_id) => {
+    return db.none(SET_STARTING_PLAYER_QUERY, [game_id, user_id]);
 }
 
 module.exports = {
@@ -509,5 +522,6 @@ module.exports = {
     updateBid,
     getTopBid,
     getGameStage,
-    setGameStage
+    setGameStage,
+    setStartingPlayer
 };

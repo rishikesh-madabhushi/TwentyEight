@@ -129,9 +129,9 @@ gameSocket.on("connection", socket => {
 	    // We have done a full round of passes. Set the Game
 	    // Stage to PLAY
 	    Game.setGameStage(game_id, "PLAY")
-	    let res = await Promise.all[
+	    let res = await Promise.all([
 		Game.setGameStage(game_id, "PLAY"),
-		Game.getStartingPlayer(game_id)];
+		Game.getStartingPlayer(game_id)]);
 	    next_player = res[1];
     	} else if (bid != -1) {
 	    res = await Game.updateBid(user_id, game_id, bid);
@@ -141,7 +141,7 @@ gameSocket.on("connection", socket => {
     });
 
 
-    socket.on("PLAY CARDS", data => {
+    socket.on("PLAY CARDS", async data => {
 	let { user_id, game_id, passed_card: card_played } = data;
 	card_played = parseInt(card_played);
 
@@ -149,123 +149,72 @@ gameSocket.on("connection", socket => {
 	    gameSocket.emit("CANCEL NUDGE", nudge_timer);
 	}
 
-	Game.getGamePlayers(game_id).then(gamePlayers => {
-	    Game.getTurnSequenceForPlayer(user_id, game_id).then(turnQuery => {
-		let turnSequence = turnQuery[0].turn_sequence;
+	let gamePlayers, currentPlayer;
+	[gamePlayers, currentPlayer] = await Promise.all([
+	    Game.getGamePlayers(game_id),
+	    Game.getCurrentTurnId(game_id)]);
 
-		Game.getCurrentTurnId(game_id).then(results => {
-		    if (results[0].current_player != user_id) return;
-		    Game.retrieveOwnedCard(user_id, game_id, card_played).then(
-			results => {
-			    if (results.length === 0) return;
-			    Game.getLeadingSuit(game_id).then(results => {
-				let lead_suit = results[0].leading_suit;
-				if (lead_suit == null) {
-				    Game.setLeadingSuit(
-					game_id,
-					Game.getSuit(card_played));
-				}
-			    });
+	if (currentPlayer != user_id) {
+	    console.log("Played hand user not the same as current player");
+	    return;
+	}
+        await Game.addPlayedCard(user_id, game_id, card_played);
+	await update(game_id)
 
-              setTimeout(() => {
-                Game.addPlayedCard(user_id, game_id, card_played).then(() => {
-                  update(game_id).then(() => {
-                    Game.getCardsInPlayCount(game_id).then(results => {
-                      let numberOfPlayedCards = results[0].count;
+	promises = [];
 
-                      if (numberOfPlayedCards == gamePlayers.length) {
-                        Game.allocatePointsForTurn(game_id).then(
-                          winning_player => {
-                            Game.getCardsLeft(game_id).then(results => {
-                              let cardsLeft = results[0].cards_left;
+	numberOfPlayedCards = await Game.getCardsInPlayCount(game_id);
+	if (numberOfPlayedCards == 1) {
+	    // First card has been played.
+	    promises.push(Game.setLeadingSuit(game_id,
+					      Game.getSuit(card_played)));
+	}
 
-                              if (cardsLeft == 0) {
-                                // Display Winner of round
-                                // Big delay and then deal cards again for next round
-                                Game.updateTotalScores(game_id).then(() => {
-                                  Game.getMaximumScore(game_id).then(
-                                    results => {
-                                      let maximumScore =
-                                        results[0].maximum_score;
-                                      if (maximumScore >= 100) {
-                                        update(game_id);
-                                        setTimeout(() => {
-                                          gameSocket
-                                            .to(game_id)
-                                            .emit("GAME OVER", {
-                                              game_id: game_id
-                                            });
-                                          Game.deleteGame(game_id);
-                                        }, 500);
-                                      } else {
-                                        Game.incrementRoundNumber(game_id).then(
-                                          () => {
-                                            Game.setCurrentPlayer(
-                                              null,
-                                              game_id
-                                            ).then(() => {
-                                              setTimeout(() => {
-                                                Game.dealCards(game_id);
-                                                setTimeout(() => {
-                                                  Game.getUserNamesFromGame(
-                                                    game_id
-                                                  ).then(game_players => {
-                                                    gameSocket
-                                                      .to(game_id)
-                                                      .emit("LOAD PLAYERS", {
-                                                        game_players: game_players
-                                                      });
-                                                    setTimeout(() => {
-                                                      update(game_id);
-                                                    }, 500);
-                                                  });
-                                                }, 500);
-                                              }, 2000);
-                                            });
-                                          }
-                                        );
-                                      }
-                                    }
-                                  );
-                                });
-                              } else {
-                                Game.setCurrentPlayer(
-                                  winning_player,
-                                  game_id
-                                ).then(() => {
-                                  setTimeout(() => {
-                                    return update(game_id);
-                                  }, 3000);
-                                });
-                              }
-                            });
-                          }
-                        );
-                      } else {
-                        let next_player = turnSequence % gamePlayers.length;
+	if (numberOfPlayedCards == gamePlayers.length) {
+	    // Hand over
+	    // Add a delay
+	    await new Promise((resolve) => setTimeout(resolve, 3000));
 
-                        Game.setCurrentPlayer(
-                          gamePlayers[next_player].user_id,
-                          game_id
-                        ).then(() => {
-                          setTimeout(() => {
-                            return update(game_id);
-                          }, 100);
-                        });
-                      }
-                    });
-                  });
-                });
-              }, 100);
-            }
-          );
-        });
-      });
-    });
-  });
+	    let winning_player = await Game.allocatePointsForTurn(game_id);
+            let cardsLeft = await Game.getCardsLeft(game_id);
+
+            if (cardsLeft == 0) {
+                // Display Winner of round
+		// TODO: Need correct logic for TwentyEight
+                promises.push(
+		    Game.updateTotalScores(game_id).then(() => {
+			resetGame(game_id, gamePlayers)
+		    }));
+	    } else {
+                promises.push(Game.setCurrentPlayer(winning_player, game_id));
+	    }
+        } else {
+	    next_user = getNextPlayer(user_id, gamePlayers);
+	    promises.push(Game.setCurrentPlayer(next_user, game_id));
+	}
+	update(game_id).then(setTimeout(() => {
+	    Promise.all(promises).then(() => {
+		update(game_id) }); 
+	}, 3000));
+    })
 });
 
 // game logic related functions
+
+
+function getNextPlayer(user_id, gamePlayers) {
+    let next_index = 0;
+    for (i = 0; i < gamePlayers.length; i++) {
+	if (gamePlayers[i].user_id == user_id) {
+	    next_index = i + 1;
+	    if (next_index == gamePlayers.length) {
+		next_index = 0;
+	    }
+	    break;
+	}
+    }
+    return gamePlayers[next_index].user_id;
+}
 
 // Checks to see if the game needs to be set up. Returns true if so, which
 // is a little confusing.
@@ -295,46 +244,51 @@ const prepareCards = game_id => {
   });
 };
 
-const update = game_id => {
-    let game_stage;
-    Game.getGameStage(game_id).
-	then(results =>
-	     {game_stage = results[0].game_stage;});
-    let max_bid;
-    return Game.getTopBid(game_id).
-	then(results =>
-	     {max_bid = results.winning_bid;}).then(() => {
-		 Game.getSharedInformation(game_id).
-	then(shared_player_information => {
-	    for (let index = 0; index < shared_player_information.length;
-		 index++) {
-		Game.getHandSize(
-		    shared_player_information[index].username,
-		    game_id).then(results => {
-			shared_player_information[index]["card_count"] =
-			    results.card_count;
-		    });
-	    }
-	    setTimeout(() => {
-		return Game.getCurrentTurn(game_id).then(turn_information => {
-		    gameSocket.to(game_id).emit("UPDATE", {
-			shared_player_information: shared_player_information,
-			turn_information: turn_information,
-			game_stage: game_stage,
-			max_bid: max_bid
-		    });
-		    return Promise.resolve(shared_player_information);
-		});
-	    }, 100);
-	})
-	     });
+async function update(game_id) {
+    let game_stage; 
+    let bid_state;
+    let shared_player_info;
+    [game_stage, bid_state, shared_player_info] = await Promise.all(
+	[Game.getGameStage(game_id), Game.getTopBid(game_id),
+	 Game.getSharedInformation(game_id)])
+    var handsizeRequests = [];
+    shared_player_info.forEach(spi => {
+	handsizeRequests.push(
+	    Game.getHandSize(spi.username, game_id).
+		then(results => {
+		    spi["card_count"] = results.card_count;
+		}));
+    });
+    await Promise.all(handsizeRequests);
+    return Game.getCurrentTurn(game_id).then(turn_information => {
+	gameSocket.to(game_id).emit("UPDATE", {
+	    shared_player_information: shared_player_info,
+	    turn_information: turn_information,
+	    game_stage: game_stage,
+	    max_bid: bid_state.winning_bid
+	});
+    });
 };
 
-const startGame = game_id => {
-    starting_player = Game.getStartingPlayer(game_id)
-    Game.setCurrentPlayer(starting_player, game_id).then(() => {
-        return update(game_id);
+
+async function resetGame(game_id, gamePlayers) {
+    let starting_player = await Game.getStartingPlayer(game_id);
+    next_user = getNextPlayer(starting_player, gamePlayers);
+    // Set starting player.
+    await Promise.all[Game.dealCards(game_id),
+		      Game.incrementRoundNumber(game_id),
+		      Game.setStartingPlayer(game_id, next_user)];
+
+    let game_players = await Game.getUserNamesFromGame(game_id);
+    
+    gameSocket.to(game_id).emit("LOAD PLAYERS", {
+        game_players: game_players
     });
+};
+
+
+async function startGame(game_id) {
+    return update(game_id);
 };
 
 module.exports = {

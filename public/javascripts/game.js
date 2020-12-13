@@ -566,9 +566,9 @@ function buttonDisableLogic() {
 function playButton() {
   //send one card to the server
   gameSocket.emit("PLAY CARDS", {
-    user_id: user_id,
-    game_id: game_id,
-    passed_card: selectedSingleCard
+      user_id: user_id,
+      game_id: game_id,
+      passed_card: selectedSingleCard
   });
 
   resetCard(selectedSingleCard);
