@@ -34,7 +34,6 @@ gameSocket.on("connection", socket => {
 	return;
     }
     socket.join(game_id);
-
     checkGameReady(game_id).then(results => {
 	if (results === true) {
 	    return prepareCards(game_id).then(() => {
@@ -49,7 +48,6 @@ gameSocket.on("connection", socket => {
 	    return Game.getUserNamesFromGame(game_id).then(username => {
 		gameSocket.to(game_id).emit("LOAD PLAYERS",
 					    { game_players: username });
-
 		setTimeout(() => {
 		    Game.maxPlayers(game_id).then(results => {
 			const max_players = results[0].max_players;
@@ -127,12 +125,8 @@ gameSocket.on("connection", socket => {
 	let max_bidder = results.winning_bidder;
 	if (bid == -1 && max_bidder == next_player) {
 	    // We have done a full round of passes. Set the Game
-	    // Stage to PLAY
-	    Game.setGameStage(game_id, "PLAY")
-	    let res = await Promise.all([
-		Game.setGameStage(game_id, "PLAY"),
-		Game.getStartingPlayer(game_id)]);
-	    next_player = res[1];
+	    // Stage to SET_TRUMP
+	    await Game.setGameStage(game_id, "SET_TRUMP");
     	} else if (bid != -1) {
 	    res = await Game.updateBid(user_id, game_id, bid);
 	}
@@ -140,6 +134,15 @@ gameSocket.on("connection", socket => {
 	    then(() => { return update(game_id); });
     });
 
+    socket.on("SET TRUMP", async data => {
+	const { suit, game_id } = data
+	console.log(suit)
+	// TODO: Check that the user has cards of that suit
+
+	await Promise.all([Game.setGameStage(game_id, "PLAY"),
+			   Game.setTrumpSuit(game_id, suit)])
+	return update(game_id);
+    })
 
     socket.on("PLAY CARDS", async data => {
 	let { user_id, game_id, passed_card: card_played } = data;

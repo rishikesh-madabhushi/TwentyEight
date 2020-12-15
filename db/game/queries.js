@@ -187,6 +187,9 @@ const GET_BID_QUERY =
 const SET_STARTING_PLAYER_QUERY =
       "UPDATE games SET starting_player = $2, current_player = $2 WHERE game_id = $1";
 
+const SET_TRUMP_SUIT_QUERY =
+      "UPDATE games SET trump_suit = $2 WHERE game_id = $1";
+
 module.exports = {
   CREATE_GAME_QUERY,
   CREATE_GAME_PLAYER_QUERY,
@@ -240,5 +243,6 @@ module.exports = {
   GET_BID_QUERY,
   GET_GAME_STAGE_QUERY,
     SET_GAME_STAGE_QUERY,
-    SET_STARTING_PLAYER_QUERY
+    SET_STARTING_PLAYER_QUERY,
+    SET_TRUMP_SUIT_QUERY
 };

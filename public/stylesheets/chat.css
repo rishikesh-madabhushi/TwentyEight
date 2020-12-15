@@ -31,13 +31,13 @@ h2 {
   color: #575ed8;
 }
 
-label {
+.game-chat-box label {
   box-sizing: border-box;
   display: block;
   padding: 10px 20px;
 }
 
-input {
+.game-chat-box input {
   padding: 10px 20px;
   box-sizing: border-box;
   background: #eee;

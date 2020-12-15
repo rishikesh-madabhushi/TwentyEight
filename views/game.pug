@@ -4,12 +4,11 @@ html(lang='en')
 head
     title= title
     include partials/head.pug
-    link(rel='stylesheet', href='/stylesheets/bidder.css')
     link(rel='stylesheet', href='/stylesheets/chat.css')
     link(rel='stylesheet', href='/stylesheets/cards.css')
-    script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js")
-    script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js")
-    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css")
+    script(src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous")
+    script(src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous")
 
 body(class = 'general-body')
     div(class='banner')
@@ -24,7 +23,6 @@ body(class = 'general-body')
         div(class='game-box')
             p(class='waiting-box') Waiting for players to join...
             
-        
         div(class = 'game-chat-box')
             h1(class='no-vertical-padding') Game chat
             div
@@ -34,13 +32,53 @@ body(class = 'general-body')
                 input(id='message', type='text', placeholder='Message', style='color: black')
                 input(id='room_id', type='hidden')
                 button.btn.btn-primary(id='send', style='width: 100%') Send 
-                
-        div(class='bid-box', id = 'bid-box')
-            h3(class='no-vertical-padding') Bids
-            div
-                input(id = 'bidder', type='range', min='13', max='28', value='13', oninput='bid.innerHTML="Bid " + bidder.value')
-                button.btn.btn-primary(id='bid', onclick='doBid()', style='width: 50%') 
-                button.btn.btn-secondary(id='pass', style='width: 50%', onclick='passBid()') Pass                 
+
+    div(class='modal fade', id='bid-box', tabindex="-1", role='dialog')
+        div(class='modal-dialog modal-dialog-centered' role='document')
+            div(class="modal-content")
+                div(class="modal-header text-white-50 bg-dark py-1")
+                    h6(class='modal-title') Bid
+                div(class="modal-body py-3")
+                    input.w-50.py-2(id = 'bidder', type='range', min='13', max='28', value='13', oninput='bid.innerHTML="Bid " + bidder.value')
+                    div(class="btn-group float-right")
+                        button.btn.btn-primary(id='bid', onclick='doBid()', style='width: 50%') +-
+                        button.btn.btn-secondary(id='pass', style='width: 50%', onclick='passBid()') Pass
+
+    div(class='modal fade', id='trump-box', tabindex="-1", role='dialog')
+        div(class='modal-dialog modal-dialog-centered' role='document')
+            div(class="modal-content")
+               div(class="modal-header text-white-50 bg-dark py-1")
+                  h6(class='modal-title') Choose a Trump Suit
+               div(class="modal-body py-3 d-flex justify-content-center")
+                   div(class="form-check form-check-inline px-2")
+                       input(type='radio', class="form-check-input", id='clubs', value='0', name='trump', required)
+                       label(class="form-check-label text-muted", for="clubs")
+                          svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" class="bi bi-suit-club-fill" viewBox="0 0 16 16")
+                              path(d="M11.5 4.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z")
+                              path(d="M8 9a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0zm7 0a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z")
+                              path(d="M5.602 14.153c.5-.758 1.224-1.98 1.83-3.498.187-.467.949-.467 1.136 0a19.816 19.816 0 0 0 1.83 3.498c.231.35-.02.847-.438.847H6.04c-.419 0-.67-.497-.438-.847z")
+                              path(d="M7 7h2v4H7V7z")
+                   div(class="form-check form-check-inline px-2")
+                       input(type='radio', class="form-check-input", id='diamonds', value='1', name='trump', required)
+                       label(class="form-check-label text-muted", for="diamonds")
+                          svg(class="bi bi-suit-diamond-fill" width="16" height="16" viewBox="0 0 16 16" fill="red" xmlns="http://www.w3.org/2000/svg")
+                              path(d="M2.45 7.4L7.2 1.067a1 1 0 0 1 1.6 0L13.55 7.4a1 1 0 0 1 0 1.2L8.8 14.933a1 1 0 0 1-1.6 0L2.45 8.6a1 1 0 0 1 0-1.2z")
+
+                   div(class="form-check form-check-inline px-2")
+                       input(type='radio', class="form-check-input", id='hearts', value='2', name='trump', required)
+                       label(class="form-check-label text-muted", for="hearts")
+                           svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-suit-heart-fill" viewBox="0 0 16 16")
+                               path(d="M4 1c2.21 0 4 1.755 4 3.92C8 2.755 9.79 1 12 1s4 1.755 4 3.92c0 3.263-3.234 4.414-7.608 9.608a.513.513 0 0 1-.784 0C3.234 9.334 0 8.183 0 4.92 0 2.755 1.79 1 4 1z")
+
+                   div(class="form-check form-check-inline px-2")
+                       input(type='radio', class="form-check-input", id='spades', value='3', name='trump', required)
+                       label(class="form-check-label", for="spades")
+                           svg(xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" class="bi bi-suit-spade-fill" viewBox="0 0 16 16")
+                               path(d="M5.602 14.153C6.272 13.136 7.348 11.28 8 9c.652 2.28 1.727 4.136 2.398 5.153.231.35-.02.847-.438.847H6.04c-.419 0-.67-.497-.438-.847z")
+                               path(d="M4.5 12.5A3.5 3.5 0 0 0 8 9a3.5 3.5 0 1 0 7 0c0-3-4-4-7-9-3 5-7 6-7 9a3.5 3.5 0 0 0 3.5 3.5z")
+
+               div(class="modal-footer py-1")
+                  button(type='button', id='trump-submit', class="btn btn-primary", data-dismiss="modal", disabled, onclick='processTrumpSubmit()') Submit
        
     script.
         const username = '#{user.username}'
@@ -48,5 +86,6 @@ body(class = 'general-body')
         const game_id = '#{game_id}'
         document.getElementById('room_id').value = game_id
         const chatSocket = io();
+        $("input:radio").change(function () {$("#trump-submit").prop("disabled", false);});
     script(src='/javascripts/chat.js')
     script(src='/javascripts/game.js')

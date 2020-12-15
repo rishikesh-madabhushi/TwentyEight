@@ -53,7 +53,8 @@ const {
   RESET_BIDS_QUERY,
   GET_GAME_STAGE_QUERY,
     SET_GAME_STAGE_QUERY,
-    SET_STARTING_PLAYER_QUERY
+    SET_STARTING_PLAYER_QUERY,
+    SET_TRUMP_SUIT_QUERY
 } = require("./queries");
 
 const createGame = (max_players, user_id, game_name) => {
@@ -475,6 +476,10 @@ const setStartingPlayer = (game_id, user_id) => {
     return db.none(SET_STARTING_PLAYER_QUERY, [game_id, user_id]);
 }
 
+const setTrumpSuit = (game_id, suit) => {
+    return db.none(SET_TRUMP_SUIT_QUERY, [game_id, suit]);
+}
+
 module.exports = {
   createGame,
   createInitialGamePlayer,
@@ -523,5 +528,6 @@ module.exports = {
     getTopBid,
     getGameStage,
     setGameStage,
-    setStartingPlayer
+    setStartingPlayer,
+    setTrumpSuit
 };

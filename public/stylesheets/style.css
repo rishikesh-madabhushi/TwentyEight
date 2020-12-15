@@ -1,9 +1,10 @@
 /*General*/
 
+
 .general-body {
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  background-color: #086305;
-  color: whitesmoke;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    background-color: #086305;
+    color: whitesmoke;
 }
 
 .align-center {
@@ -318,28 +319,6 @@
   margin: 0 20px;
 }
 
-.bid-box {
-    width: 20%;
-    position: fixed;
-    min-width: 400px;
-    margin: 0 200px;
-    height: auto;
-    padding: 20px;
-    top: 30%;
-    left: 1%;
-    display: none;
-
-    border-radius: 10px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
-
-    background-color: #e9eb89;
-    color: rgb(0, 0, 0);
-
-    z-index: 50 !important;
-    opacity: 1;
-    transition: opacity 1s ease-in-out;
-}
-
 .blocker {
   z-index: 100 !important;
 }
@@ -347,3 +326,4 @@
 .close-modal {
   display: none !important;
 }
+

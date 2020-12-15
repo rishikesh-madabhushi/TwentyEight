@@ -21,33 +21,33 @@ const MIN_BID = 14;
 const MAX_BID = 28;
 
 gameSocket.on("LOAD PLAYERS", data => {
-  playerNames = data.game_players;
+    playerNames = data.game_players;
 
-  numPlayers = playerNames.length;
+    numPlayers = playerNames.length;
 
-  bottomPlayer = null;
+    bottomPlayer = null;
 
-  for (let i = 0; i < numPlayers; i++) {
-    if (username == playerNames[i].username) {
-      bottomPlayerOrder = i;
-      break;
+    for (let i = 0; i < numPlayers; i++) {
+	if (username == playerNames[i].username) {
+	    bottomPlayerOrder = i;
+	    break;
+	}
     }
-  }
 
-  if (bottomPlayerOrder == null) {
-    observer = true;
-    bottomPlayerOrder = 0;
-  } else {
-    observer = false;
-  }
+    if (bottomPlayerOrder == null) {
+	observer = true;
+	bottomPlayerOrder = 0;
+    } else {
+	observer = false;
+    }
 
-  if (numPlayers == 4) {
-    leftPlayerOrder = (bottomPlayerOrder + 1) % 4;
-    topPlayerOrder = (bottomPlayerOrder + 2) % 4;
-    rightPlayerOrder = (bottomPlayerOrder + 3) % 4;
-  } else {
-    topPlayerOrder = (bottomPlayerOrder + 1) % 2;
-  }
+    if (numPlayers == 4) {
+	leftPlayerOrder = (bottomPlayerOrder + 1) % 4;
+	topPlayerOrder = (bottomPlayerOrder + 2) % 4;
+	rightPlayerOrder = (bottomPlayerOrder + 3) % 4;
+    } else {
+	topPlayerOrder = (bottomPlayerOrder + 1) % 2;
+    }
 });
 
 gameSocket.on("UPDATE", data => {
@@ -68,7 +68,9 @@ gameSocket.on("UPDATE", data => {
     if (observer) {
 	turnState = "observer";
     } else if (currentPlayer == username) {
-	if (gameStage == "BIDDING") {
+	if (gameStage == "SET_TRUMP") {
+	    askForTrump();
+	} else if (gameStage == "BIDDING") {
     	    turnState = "bid";
 	} else {
             turnState = "play"
@@ -440,9 +442,22 @@ function selectSingleCard(id) {
 
 function hideBidBox() {
   let bidbox = document.getElementById("bid-box");
-    //bidbox.style.display = "none";
     bidbox.style.opacity = 0
     setTimeout(() => {bidbox.style.display = "none";}, 1000);
+}
+
+function processTrumpSubmit() {
+    let suit = $("input:radio[name='trump']:checked").val();
+    console.log(suit);
+    gameSocket.emit("SET TRUMP", {
+	suit: suit,
+	game_id: game_id
+    });
+}
+
+function askForTrump() {
+    let trumpbox = document.getElementById("trump-box");
+    $('#trump-box').modal({backdrop: 'static', keyboard: false});
 }
 
 function showBidBox() {
@@ -476,37 +491,36 @@ function showBidBox() {
 }
 
 function passBid() {
-  let message =  username + " PASSED.";
-  console.log("Passing on bid");
-  chatSocket.emit("chat", {
-    room_id: game_id,
-    message: message,
-    handle: "Admin"
-  });
-  hideBidBox();
-  gameSocket.emit("MAKE BID", {
-    user_id: user_id,
-    game_id: game_id,
-    bid: -1
-  });
+    let message =  username + " PASSED.";
+    console.log("Passing on bid");
+    chatSocket.emit("chat", {
+	room_id: game_id,
+	message: message,
+	handle: "Admin"
+    });
+    hideBidBox();
+    gameSocket.emit("MAKE BID", {
+	user_id: user_id,
+	game_id: game_id,
+	bid: -1
+    });
 }
 
 function doBid() {
-  console.log("Made a bid");
-  let bidder = document.getElementById("bidder");
-  let message =  username + " bid " + bidder.value;
-  chatSocket.emit("chat", {
-    room_id: game_id,
-    message: message,
-    handle: "Admin"
-  });
-  hideBidBox();
-  gameSocket.emit("MAKE BID", {
-    user_id: user_id,
-    game_id: game_id,
-    bid: bidder.value
-  });
-  
+    console.log("Made a bid");
+    let bidder = document.getElementById("bidder");
+    let message =  username + " bid " + bidder.value;
+    chatSocket.emit("chat", {
+	room_id: game_id,
+	message: message,
+	handle: "Admin"
+    });
+    hideBidBox();
+    gameSocket.emit("MAKE BID", {
+	user_id: user_id,
+	game_id: game_id,
+	bid: bidder.value
+    });
 }
 
 function buttonDisableLogic() {
